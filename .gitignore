@@ -84,3 +84,7 @@ modules.xml
 *.ipr
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm+iml
+.idea/vcs.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/aws.xml

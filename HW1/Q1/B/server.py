@@ -7,8 +7,17 @@ ENCODING = "ascii"
 
 clients = []
 numbers = []
+
+# This lock is used to access 'numbers' list.
 numbers_lock = threading.Lock()
+
+# This semaphore is used for clients. So after a client put one number in 'numbers', it waits until the other number is
+# also added to the array and their sum calculated. When the sum is calculated we will release this semaphore two times
+# to let two client handlers work again.
 client_sema = threading.Semaphore(0)
+
+# This semaphore is used in handle_sum. It will cause it to wait until one of clients check that there are two numbers
+# in 'numbers'. When there are two numbers in list, they will wake the thread that is handling handle_sum.
 result_sema = threading.Semaphore(0)
 
 
@@ -22,15 +31,17 @@ def handle_client(conn: socket.socket, addr):
             print(f"[RECEIVED] {data}")
             try:
                 data = int(data)
-                with numbers_lock:
+                with numbers_lock:  # Lock for synchronization.
                     numbers.append(data)
             except:
                 conn.send("Invalid Argument".encode(ENCODING))
             with numbers_lock:
-                if len(numbers) == 2:
+                if len(numbers) == 2:  # release semaphore to let another thread calculate their sum.
                     result_sema.release()
+
+            # Wait until two numbers are put in 'numbers' and their sum is calculated. After their sum is calculated,
+            # and the result is broadcasted, this thread is unblocked.
             client_sema.acquire(blocking=True)
-            print("Wake Up!")
 
 
 def broadcast(msg: str):
@@ -40,14 +51,13 @@ def broadcast(msg: str):
 
 def handle_sum():
     while True:
+        # Wait until there are two numbers in 'numbers'. One of the client handlers will wake this thread.
         result_sema.acquire()
         result = numbers[0] + numbers[1]
         numbers.clear()
         broadcast(str(result))
         client_sema.release()
-        print("Next Cycle")
         client_sema.release()
-        print("Next Cycle")
 
 
 if __name__ == '__main__':

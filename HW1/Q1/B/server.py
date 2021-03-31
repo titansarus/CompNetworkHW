@@ -23,25 +23,26 @@ result_sema = threading.Semaphore(0)
 
 def handle_client(conn: socket.socket, addr):
     print(f"[CONNECTED] {addr}")
-    with conn:
-        while True:
-            data = conn.recv(1024).decode(ENCODING)
-            if not data:
-                break
-            print(f"[RECEIVED] {data}")
-            try:
-                data = int(data)
-                with numbers_lock:  # Lock for synchronization.
-                    numbers.append(data)
-            except:
-                conn.send("Invalid Argument".encode(ENCODING))
-            with numbers_lock:
-                if len(numbers) == 2:  # release semaphore to let another thread calculate their sum.
-                    result_sema.release()
+    while True:
+        data = conn.recv(1024).decode(ENCODING)
+        if not data:
+            break
+        print(f"[RECEIVED] {data}")
+        try:
+            data = int(data)
+            with numbers_lock:  # Lock for synchronization.
+                numbers.append(data)
+        except:
+            conn.send("Invalid Argument".encode(ENCODING))
+        with numbers_lock:
+            if len(numbers) == 2:  # release semaphore to let another thread calculate their sum.
+                result_sema.release()
 
-            # Wait until two numbers are put in 'numbers' and their sum is calculated. After their sum is calculated,
-            # and the result is broadcasted, this thread is unblocked.
-            client_sema.acquire(blocking=True)
+        # Wait until two numbers are put in 'numbers' and their sum is calculated. After their sum is calculated,
+        # and the result is broadcasted, this thread is unblocked.
+        client_sema.acquire(blocking=True)
+    clients.remove(conn)
+    conn.close()
 
 
 def broadcast(msg: str):

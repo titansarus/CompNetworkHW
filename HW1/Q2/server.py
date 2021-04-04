@@ -1,6 +1,7 @@
 import socket
 import threading
 
+from HW1.Q2.Model.Message import Message
 from HW1.Q2.Model.Account import Account
 from HW1.Q2.Model.Channel import Channel
 from HW1.Q2.Model.Group import Group
@@ -21,6 +22,16 @@ def send_command(conn: socket.socket, cmd: str):
     conn.send(COMMANDS[cmd].encode(ENCODING))
 
 
+def send_message(conn: socket.socket, messages: list[Message]):
+    all_msg = ""
+    for msg in messages:
+        all_msg += (str(msg) + "\n")
+    send_len = len(all_msg) + 2
+    send_length_msg = COMMANDS[SEND_ALL_MESSAGE_PROTOCOL] + " " + str(send_len)
+    conn.send(send_length_msg.encode(ENCODING))
+    conn.send(all_msg.encode(ENCODING))
+
+
 def handle_client(conn: socket.socket, addr):
     print(f"[CONNECTED] {addr}")
     account_id = make_or_find_account(conn)
@@ -31,11 +42,48 @@ def handle_client(conn: socket.socket, addr):
             create_channel(account_id, conn, data)
             join_group(account_id, conn, data)
             join_channel(account_id, conn, data)
+            send_channel_message(account_id, conn, data)
+            view_channel_message(account_id, conn, data)
 
     except:
         with clients_lock:
             clients.pop(account_id)
-        conn.close()
+    conn.close()
+
+
+def view_channel_message(account_id, conn, data):
+    result = VIEW_CHANNEL_REGEX.match(data)
+    if result:
+        channel_id = result.group(1)
+        chs = [x for x in channels if x.id == channel_id]
+        if len(chs) > 0:
+            channel = chs[0]
+            if account_id in channel.members:
+                send_message(conn, channel.messages)
+            else:
+                send_command(conn, NOT_SUBSCRIBED_TO_CHANNEL)
+
+        else:
+            send_command(conn, NO_SUCH_CHANNEL)
+
+
+def send_channel_message(account_id, conn, data):
+    result = SEND_CHANNEL_REGEX.match(data)
+    if result:
+        channel_id = result.group(1)
+        chs = [x for x in channels if x.id == channel_id]
+        if len(chs) > 0:
+            channel = chs[0]
+            msg_str = result.group(2)
+            if account_id == channel.owner_id:
+                msg = Message(account_id, msg_str)
+                channel.messages.append(msg)
+                send_command(conn, CHANNEL_MESSAGE_SUCCESS)
+            else:
+                send_command(conn, CHANNEL_WRITE_INVALID_PERMISSION)
+
+        else:
+            send_command(conn, NO_SUCH_CHANNEL)
 
 
 def join_channel(account_id, conn, data):

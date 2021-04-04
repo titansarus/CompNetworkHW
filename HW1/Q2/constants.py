@@ -23,6 +23,13 @@ GROUP_ALREADY_JOINED = "GROUP_ALREADY_JOINED"
 NO_SUCH_GROUP = "NO_SUCH_GROUP"
 NO_SUCH_CHANNEL = "NO_SUCH_CHANNEL"
 
+CHANNEL_WRITE_INVALID_PERMISSION = "CHANNEL_WRITE_INVALID"
+CHANNEL_MESSAGE_SUCCESS = "CHANNEL_MESSAGE_SUCCESS"
+
+NOT_SUBSCRIBED_TO_CHANNEL = "NOT_SUBSCRIBED_TO_CHANNEL"
+
+SEND_ALL_MESSAGE_PROTOCOL = "SEND_ALL_MESSAGE_PROTOCOL"
+
 COMMANDS = {
     USER_ID_REQ: "85119eb367183645faaee4a424bbd86f749b1d4247697c2703ac447f4458902b",
     ACCOUNT_CREATE_SUCCESS: "6cc99eaf5d8f16a415acc95d469206ee87a66d9e7df3c2225a47d170c93c413b",
@@ -37,7 +44,11 @@ COMMANDS = {
     CHANNEL_ALREADY_JOINED: "07eb5e1cb6c2e8d8219a0345828261aea1d5be1b065674c856a51aa85ca18574",
     GROUP_ALREADY_JOINED: "bdc6bfa69dfeac91f0689ddfa46d154dc9348b6edb1168e5fba37838473d2679",
     NO_SUCH_GROUP: "39f0ddff5461b28c16b866199e32f48bc30de5a52415db554bf6159ba22d382a",
-    NO_SUCH_CHANNEL: "00ad0a2ae78661e42d320e2064dfc6c526610b9bbe3aefd065f7864b5975ddf3"
+    NO_SUCH_CHANNEL: "00ad0a2ae78661e42d320e2064dfc6c526610b9bbe3aefd065f7864b5975ddf3",
+    CHANNEL_WRITE_INVALID_PERMISSION: "e95d976b767288ac23d9f0dfd9c421a0a8f73410134201a944eaa2b6578bc87b",
+    CHANNEL_MESSAGE_SUCCESS: "8a2068b9a0929f28b8a34ff149cfb17df4d1d48b0a24592a55301a22d2aeccd5",
+    NOT_SUBSCRIBED_TO_CHANNEL: "b21c2f6e8f367ac2c4efb601601a4cf170394e52606ea48f0134f998e5e052d9",
+    SEND_ALL_MESSAGE_PROTOCOL:"d1e629d7d53dac8889393204c9fd740c6d5de3aa4bcb8fadbffc1915681c5cd8"
 
 }
 
@@ -55,7 +66,10 @@ USER_MSG = {
     CHANNEL_ALREADY_JOINED: "You've joined this channel before",
     GROUP_ALREADY_JOINED: "You've joined this group before",
     NO_SUCH_GROUP: "No group exists with that id.",
-    NO_SUCH_CHANNEL: "No Channel Exists with that id"
+    NO_SUCH_CHANNEL: "No Channel Exists with that id",
+    CHANNEL_WRITE_INVALID_PERMISSION: "You don't have permission to write to this channel",
+    CHANNEL_MESSAGE_SUCCESS: "Channel Message posted successfully",
+    NOT_SUBSCRIBED_TO_CHANNEL: "You are not subscribed to this channel"
 }
 
 CREATE_GROUP_REGEX = re.compile(r"^create group (\w+)$")
@@ -64,3 +78,4 @@ JOIN_GROUP_REGEX = re.compile(r"^join group (\w+)$")
 JOIN_CHANNEL_REGEX = re.compile(r"^join channel (\w+)$")
 SEND_PV_OR_GROUP_REGEX = re.compile(r"^send message to (\w+) '([^']+)'$")
 SEND_CHANNEL_REGEX = re.compile(r"^send channel message to (\w+) '([^']+)'$")
+VIEW_CHANNEL_REGEX = re.compile(r"^view channel (\w+)$")

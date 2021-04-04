@@ -1,8 +1,3 @@
-from HW1.Q1.Q2.Model import Channel, Group
-import socket
-import threading
-
-
 class Account:
     def __init__(self, user_id):
         self.user_id = user_id

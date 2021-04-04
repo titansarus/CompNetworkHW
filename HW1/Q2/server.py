@@ -48,24 +48,45 @@ def handle_client(conn: socket.socket, addr):
             send_channel_message(account_id, conn, data)
             view_channel_message(account_id, conn, data)
             send_group_or_pv_message(account_id, conn, data)
-            result = VIEW_GROUP_REGEX.match(data)
-            if result:
-                group_id = result.group(1)
-                grps = [x for x in groups if x.id == group_id]
-                if len(grps) > 0:
-                    group = grps[0]
-                    if account_id in group.members:
-                        send_all_message(conn, group.messages)
-                    else:
-                        send_command(conn, NOT_SUBSCRIBED_TO_GROUP)
-
-                else:
-                    send_command(conn, NO_SUCH_CHANNEL)
-
+            view_group_message(account_id, conn, data)
+            view_private_message(account_id, conn, data)
     except:
         with clients_lock:
             clients.pop(account_id)
     conn.close()
+
+
+def view_private_message(account_id, conn, data):
+    result = VIEW_PV_REGEX.match(data)
+    if result:
+        acc_id = result.group(1)
+        accs = [x for x in accounts if x.user_id == acc_id]
+        if len(accs) > 0:
+            acc = accs[0]
+            key = tuple(sorted((account_id, acc.user_id)))
+            if key in private_messages:
+                send_all_message(conn, private_messages[key])
+            else:
+                send_command(conn, NO_PV_BETWEEN_THESE_USERS)
+
+        else:
+            send_command(conn, NO_SUCH_USER)
+
+
+def view_group_message(account_id, conn, data):
+    result = VIEW_GROUP_REGEX.match(data)
+    if result:
+        group_id = result.group(1)
+        grps = [x for x in groups if x.id == group_id]
+        if len(grps) > 0:
+            group = grps[0]
+            if account_id in group.members:
+                send_all_message(conn, group.messages)
+            else:
+                send_command(conn, NOT_SUBSCRIBED_TO_GROUP)
+
+        else:
+            send_command(conn, NO_SUCH_CHANNEL)
 
 
 def send_group_or_pv_message(account_id, conn, data):

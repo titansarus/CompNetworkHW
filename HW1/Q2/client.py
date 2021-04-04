@@ -78,6 +78,12 @@ def handle_receive(sock: socket.socket):
             elif msg == COMMANDS[NOT_SUBSCRIBED_TO_GROUP]:
                 print(USER_MSG[NOT_SUBSCRIBED_TO_GROUP])
 
+            elif msg == COMMANDS[NO_SUCH_USER]:
+                print(USER_MSG[NO_SUCH_USER])
+
+            elif msg == COMMANDS[NO_PV_BETWEEN_THESE_USERS]:
+                print(USER_MSG[NO_PV_BETWEEN_THESE_USERS])
+
 
 
             elif msg.startswith(COMMANDS[SEND_ALL_MESSAGE_PROTOCOL]):

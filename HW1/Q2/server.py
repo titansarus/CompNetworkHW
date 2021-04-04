@@ -207,6 +207,7 @@ def create_group(account_id, conn, data):
 
 
 def make_or_find_account(conn):
+    # TODO Check UNIQUENESS BETWEEN GROUPS AND ACCOUNTS.
     need_to_repeat = True
     account_id = ""
     while need_to_repeat:

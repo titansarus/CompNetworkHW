@@ -21,29 +21,42 @@ def send_command(conn: socket.socket, cmd: str):
     conn.send(COMMANDS[cmd].encode(ENCODING))
 
 
+
 def handle_client(conn: socket.socket, addr):
     print(f"[CONNECTED] {addr}")
-    send_command(conn, USER_ID_REQ)
-    data = conn.recv(1024)
-    if not data:
-        conn.close()
-    account_id = data.decode(ENCODING)
+    need_to_repeat = True
+    account_id = ""
+    while need_to_repeat:
+        send_command(conn, USER_ID_REQ)
+        data = conn.recv(1024)
+        if not data:
+            conn.close()
+        account_id = data.decode(ENCODING)
+        if account_id not in clients:
+            need_to_repeat = False
+        else:
+            send_command(conn, ACCOUNT_ALREADY_EXIST)
+
     account_exist = False
     if any([x for x in accounts if x.user_id == account_id]):
         account = [x for x in accounts if x.user_id == account_id][0]
         account_exist = True
     else:
-        account = Account(data.decode(ENCODING))
+        account = Account(account_id)
 
     with clients_lock:
         clients[account.user_id] = conn
         if not account_exist:
             with accounts_lock:
                 accounts.append(account)
-    send_command(conn, ACCOUNT_CREATE_SUCCESS)
+
+    if not account_exist:
+        send_command(conn, ACCOUNT_CREATE_SUCCESS)
+    else:
+        send_command(conn,CONNECTED_TO_ALREADY_EXIST_ACCOUNT)
     try:
         while True:
-            pass
+            data = conn.recv(1024)
     except:
         with clients_lock:
             clients.pop(account_id)

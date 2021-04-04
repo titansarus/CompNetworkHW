@@ -21,6 +21,10 @@ def handle_receive(sock: socket.socket):
                 print(USER_MSG[USER_ID_REQ])
             elif msg == COMMANDS[ACCOUNT_CREATE_SUCCESS]:
                 print(USER_MSG[ACCOUNT_CREATE_SUCCESS])
+            elif msg == COMMANDS[ACCOUNT_ALREADY_EXIST]:
+                print(USER_MSG[ACCOUNT_ALREADY_EXIST])
+            elif msg == COMMANDS[CONNECTED_TO_ALREADY_EXIST_ACCOUNT]:
+                print(USER_MSG[CONNECTED_TO_ALREADY_EXIST_ACCOUNT])
             else:
                 print(msg)
 

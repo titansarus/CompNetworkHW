@@ -11,18 +11,21 @@ clients_lock = threading.Lock()
 accounts_lock = threading.Lock()
 channels_lock = threading.Lock()
 groups_lock = threading.Lock()
+private_message_lock = threading.Lock()
 
 clients: dict[str, socket.socket] = {}
 accounts: list[Account] = []
 channels: list[Channel] = []
 groups: list[Group] = []
 
+private_messages: dict[tuple[str, str], list[Message]] = {}
+
 
 def send_command(conn: socket.socket, cmd: str):
     conn.send(COMMANDS[cmd].encode(ENCODING))
 
 
-def send_message(conn: socket.socket, messages: list[Message]):
+def send_all_message(conn: socket.socket, messages: list[Message]):
     all_msg = ""
     for msg in messages:
         all_msg += (str(msg) + "\n")
@@ -44,11 +47,51 @@ def handle_client(conn: socket.socket, addr):
             join_channel(account_id, conn, data)
             send_channel_message(account_id, conn, data)
             view_channel_message(account_id, conn, data)
+            send_group_or_pv_message(account_id, conn, data)
+            result = VIEW_GROUP_REGEX.match(data)
+            if result:
+                group_id = result.group(1)
+                grps = [x for x in groups if x.id == group_id]
+                if len(grps) > 0:
+                    group = grps[0]
+                    if account_id in group.members:
+                        send_all_message(conn, group.messages)
+                    else:
+                        send_command(conn, NOT_SUBSCRIBED_TO_GROUP)
+
+                else:
+                    send_command(conn, NO_SUCH_CHANNEL)
 
     except:
         with clients_lock:
             clients.pop(account_id)
     conn.close()
+
+
+def send_group_or_pv_message(account_id, conn, data):
+    result = SEND_PV_OR_GROUP_REGEX.match(data)
+    if result:
+        group_or_user_id = result.group(1)
+        msg_str = result.group(2)
+        msg = Message(account_id, msg_str)
+        grps = [x for x in groups if x.id == group_or_user_id]
+        accs = [x for x in accounts if x.user_id == group_or_user_id]
+        if len(grps) > 0:
+            grp = grps[0]
+            if account_id in grp.members:
+                grp.messages.append(msg)
+                send_command(conn, GROUP_MESSAGE_SUCCESS)
+            else:
+                send_command(conn, GROUP_WRITE_INVALID_PERMISSION)
+        elif len(accs) > 0:
+            acc = accs[0]
+            key = tuple(sorted((account_id, acc.user_id)))
+            if key not in private_messages.keys():
+                private_messages[key] = []
+            private_messages[key].append(msg)
+            send_command(conn, PRIVATE_MESSAGE_SUCCESS)
+        else:
+            send_command(conn, NO_SUCH_GROUP_OR_USER)
 
 
 def view_channel_message(account_id, conn, data):
@@ -59,7 +102,7 @@ def view_channel_message(account_id, conn, data):
         if len(chs) > 0:
             channel = chs[0]
             if account_id in channel.members:
-                send_message(conn, channel.messages)
+                send_all_message(conn, channel.messages)
             else:
                 send_command(conn, NOT_SUBSCRIBED_TO_CHANNEL)
 

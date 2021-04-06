@@ -6,7 +6,6 @@ import time
 # Lock to use print(). It is used to prevent printing from multiple threads at once.
 print_lock = threading.Lock()
 
-# This semaphore waits until all nodes are started and ready to accept connections.
 
 
 # lower and upper bound for random id.
@@ -39,13 +38,11 @@ class Node:
         # Right is used to send messages from this node to the right node.
         self.right: socket.socket = None
 
-        # Will set this to True when we want to close all sockets.
 
     def handle_left_node_receive(self):
         try:
             while True:
                 left_id = int(self.left.recv(1024).decode(ENCODING))
-               #
 
                 # Main Logic of Election RIng
                 if left_id > self.sending_id:
@@ -60,8 +57,6 @@ class Node:
         try:
             while True:
                 self.right.send(str(self.sending_id).encode(ENCODING))
-                # with print_lock:
-                #     # print(f"{self.id} node sent {self.sending_id} to its right node")
                 time.sleep(0.5)
         except:
             self.right.close()
@@ -106,5 +101,3 @@ if __name__ == '__main__':
             print("Invalid Command")
 
     node.start_sending()
-
-    # Comment following lines to run it indefinitely.

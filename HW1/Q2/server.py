@@ -163,34 +163,28 @@ def send_channel_message(account_id, conn, data):
             send_command(conn, NO_SUCH_CHANNEL)
 
 
-def join_channel(account_id, conn, data):
-    result = JOIN_CHANNEL_REGEX.match(data)
+def join_util(account_id, conn, data, regex_pattern, arr, already_join_cmd, success_cmd, not_exist_cmd):
+    result = regex_pattern.match(data)
     if result:
-        channel_id = result.group(1)
-        if id_exist_in_list(channel_id, channels):
-            channel = [x for x in channels if x.id == channel_id][0]
-            if account_id in channel.members:
-                send_command(conn, CHANNEL_ALREADY_JOINED)
+        id = result.group(1)
+        if id_exist_in_list(id, arr):
+            ele = [x for x in arr if x.id == id][0]
+            if account_id in ele.members:
+                send_command(conn, already_join_cmd)
             else:
-                channel.members.append(account_id)
-                send_command(conn, CHANNEL_JOIN)
+                ele.members.append(account_id)
+                send_command(conn, success_cmd)
         else:
-            send_command(conn, NO_SUCH_CHANNEL)
+            send_command(conn, not_exist_cmd)
+
+
+def join_channel(account_id, conn, data):
+    join_util(account_id, conn, data, JOIN_CHANNEL_REGEX, channels, CHANNEL_ALREADY_JOINED, CHANNEL_JOIN,
+              NO_SUCH_CHANNEL)
 
 
 def join_group(account_id, conn, data):
-    result = JOIN_GROUP_REGEX.match(data)
-    if result:
-        group_id = result.group(1)
-        if id_exist_in_list(id, groups):
-            group = [x for x in groups if x.id == group_id][0]
-            if account_id in group.members:
-                send_command(conn, GROUP_ALREADY_JOINED)
-            else:
-                group.members.append(account_id)
-                send_command(conn, GROUP_JOIN)
-        else:
-            send_command(conn, NO_SUCH_GROUP)
+    join_util(account_id, conn, data, JOIN_GROUP_REGEX, groups, GROUP_ALREADY_JOINED, GROUP_JOIN, NO_SUCH_GROUP)
 
 
 def create_channel(account_id, conn, data):
@@ -199,7 +193,7 @@ def create_channel(account_id, conn, data):
         channel_id = result.group(1)
         if not id_exist_in_list(channel_id, accounts) and not id_exist_in_list(channel_id,
                                                                                groups) and not id_exist_in_list(
-                channel_id, channels):
+            channel_id, channels):
             channel = Channel(channel_id, account_id)
             with channels_lock:
                 channels.append(channel)

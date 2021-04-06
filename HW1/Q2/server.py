@@ -40,10 +40,7 @@ def send_all_message(conn: socket.socket, messages: list[Message]):
 
 
 def id_exist_in_list(id, array):
-    for x in array:
-        if x.id == id:
-            return True
-    return  False
+    return any([x for x in array if x.id == id])
 
 
 def client_exists(id):
@@ -65,7 +62,7 @@ def handle_client(conn: socket.socket, addr):
             send_group_or_pv_message(account_id, conn, data)
             view_group_message(account_id, conn, data)
             view_private_message(account_id, conn, data)
-    except:
+    except socket.error or socket.herror or socket.gaierror as e:
         with clients_lock:
             clients.pop(account_id)
     conn.close()

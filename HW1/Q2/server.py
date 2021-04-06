@@ -39,21 +39,12 @@ def send_all_message(conn: socket.socket, messages: list[Message]):
     conn.send(all_msg.encode(ENCODING))
 
 
-# Uniqueness check for main entities. Return True if Unique.
-def is_unique_channel(id):
-    return not any([x for x in channels if x.id == id])
+def id_exist_in_list(id, array):
+    return any([x for x in array if x.id == id])
 
 
-def is_unique_group(id):
-    return not any([x for x in groups if x.id == id])
-
-
-def is_unique_account(id):
-    return not any([x for x in accounts if x.user_id == id])
-
-
-def is_unique_client(id):
-    return id not in clients
+def client_exists(id):
+    return id in clients
 
 
 def handle_client(conn: socket.socket, addr):
@@ -82,10 +73,10 @@ def view_private_message(account_id, conn, data):
     result = VIEW_PV_REGEX.match(data)
     if result:
         acc_id = result.group(1)
-        accs = [x for x in accounts if x.user_id == acc_id]
+        accs = [x for x in accounts if x.id == acc_id]
         if len(accs) > 0:
             acc = accs[0]
-            key = tuple(sorted((account_id, acc.user_id)))
+            key = tuple(sorted((account_id, acc.id)))
             if key in private_messages:
                 send_all_message(conn, private_messages[key])
             else:
@@ -118,7 +109,7 @@ def send_group_or_pv_message(account_id, conn, data):
         msg_str = result.group(2)
         msg = Message(account_id, msg_str)
         grps = [x for x in groups if x.id == group_or_user_id]
-        accs = [x for x in accounts if x.user_id == group_or_user_id]
+        accs = [x for x in accounts if x.id == group_or_user_id]
         if len(grps) > 0:
             grp = grps[0]
             if account_id in grp.members:
@@ -128,7 +119,7 @@ def send_group_or_pv_message(account_id, conn, data):
                 send_command(conn, GROUP_WRITE_INVALID_PERMISSION)
         elif len(accs) > 0:
             acc = accs[0]
-            key = tuple(sorted((account_id, acc.user_id)))
+            key = tuple(sorted((account_id, acc.id)))
             if key not in private_messages.keys():
                 private_messages[key] = []
             private_messages[key].append(msg)
@@ -176,12 +167,12 @@ def join_channel(account_id, conn, data):
     result = JOIN_CHANNEL_REGEX.match(data)
     if result:
         channel_id = result.group(1)
-        chs = [x for x in channels if x.id == channel_id]
-        if len(chs) > 0:
-            if account_id in chs[0].members:
+        if id_exist_in_list(channel_id, channels):
+            channel = [x for x in channels if x.id == channel_id][0]
+            if account_id in channel.members:
                 send_command(conn, CHANNEL_ALREADY_JOINED)
             else:
-                chs[0].members.append(account_id)
+                channel.members.append(account_id)
                 send_command(conn, CHANNEL_JOIN)
         else:
             send_command(conn, NO_SUCH_CHANNEL)
@@ -191,12 +182,12 @@ def join_group(account_id, conn, data):
     result = JOIN_GROUP_REGEX.match(data)
     if result:
         group_id = result.group(1)
-        grs = [x for x in groups if x.id == group_id]
-        if len(grs) > 0:
-            if account_id in grs[0].members:
+        if id_exist_in_list(id, groups):
+            group = [x for x in groups if x.id == group_id][0]
+            if account_id in group.members:
                 send_command(conn, GROUP_ALREADY_JOINED)
             else:
-                grs[0].members.append(account_id)
+                group.members.append(account_id)
                 send_command(conn, GROUP_JOIN)
         else:
             send_command(conn, NO_SUCH_GROUP)
@@ -206,7 +197,9 @@ def create_channel(account_id, conn, data):
     result = CREATE_CHANNEL_REGEX.match(data)
     if result:
         channel_id = result.group(1)
-        if is_unique_account(channel_id) and is_unique_group(channel_id) and is_unique_channel(channel_id):
+        if not id_exist_in_list(channel_id, accounts) and not id_exist_in_list(channel_id,
+                                                                               groups) and not id_exist_in_list(
+                channel_id, channels):
             channel = Channel(channel_id, account_id)
             with channels_lock:
                 channels.append(channel)
@@ -219,7 +212,8 @@ def create_group(account_id, conn, data):
     result = CREATE_GROUP_REGEX.match(data)
     if result:
         group_id = result.group(1)
-        if is_unique_account(group_id) and is_unique_group(group_id) and is_unique_channel(group_id):
+        if not id_exist_in_list(group_id, accounts) and not id_exist_in_list(group_id, groups) and not id_exist_in_list(
+                group_id, channels):
             group = Group(group_id, account_id)
             with groups_lock:
                 groups.append(group)
@@ -241,20 +235,21 @@ def make_or_find_account(conn):
             conn.close()
         account_id = data.decode(ENCODING)
         # Uniqueness
-        if is_unique_client(account_id) and is_unique_channel(account_id) and is_unique_group(account_id):
+        if not client_exists(account_id) and not id_exist_in_list(account_id, channels) and not id_exist_in_list(
+                account_id, groups):
             need_to_repeat = False
         else:
             send_command(conn, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
 
     # Check if account exist or need to be created.
     account_exist = False
-    if not is_unique_account(account_id):
-        account = [x for x in accounts if x.user_id == account_id][0]
+    if id_exist_in_list(account_id, accounts):
+        account = [x for x in accounts if x.id == account_id][0]
         account_exist = True
     else:
         account = Account(account_id)
     with clients_lock:
-        clients[account.user_id] = conn
+        clients[account.id] = conn
 
     # If account doesn't exist, append it to 'accounts' list.
     if not account_exist:

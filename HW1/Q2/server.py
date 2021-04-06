@@ -56,15 +56,17 @@ def handle_client(connection: socket.socket, address):
         while True:
             data = connection.recv(1024).decode(ENCODING)
             # In each of these function, a regex match is checked. So only one of the will be executed.
-            create_group(account_id, connection, data)
-            create_channel(account_id, connection, data)
-            join_group(account_id, connection, data)
-            join_channel(account_id, connection, data)
-            view_channel_message(account_id, connection, data)
-            send_group_or_pv_message(account_id, connection, data)
-            view_group_message(account_id, connection, data)
-            view_private_message(account_id, connection, data)
-    except socket.error or socket.herror or socket.gaierror:
+            success = create_group(account_id, connection, data) \
+                      or create_channel(account_id, connection, data) \
+                      or join_group(account_id, connection, data) \
+                      or join_channel(account_id, connection, data) \
+                      or view_channel_message(account_id, connection, data) \
+                      or send_group_or_pv_message(account_id, connection, data) \
+                      or view_group_message(account_id, connection, data) \
+                      or view_private_message(account_id, connection, data)
+            if not success:
+                send_command(connection, INVALID_COMMAND)
+    except (socket.error, socket.herror, socket.gaierror):
         with clients_lock:
             clients.pop(account_id)
     connection.close()
@@ -84,6 +86,8 @@ def send_group_or_pv_message(account_id, connection, data):
             send_channel_message(account_id, connection, group_user_channel_id, msg)
         else:
             send_command(connection, NO_SUCH_GROUP_OR_USER_OR_CHANNEL)
+        return True
+    return False
 
 
 def send_channel_message(account_id, connection, channel_id, msg):
@@ -126,14 +130,17 @@ def view_util(account_id, connection, data, regex_pattern, arr, not_sub_cmd, not
 
         else:
             send_command(connection, not_exist_cmd)
+        return True
+    return False
 
 
 def view_group_message(account_id, connection, data):
-    view_util(account_id, connection, data, VIEW_GROUP_REGEX, groups, NOT_SUBSCRIBED_TO_GROUP, NO_SUCH_GROUP)
+    return view_util(account_id, connection, data, VIEW_GROUP_REGEX, groups, NOT_SUBSCRIBED_TO_GROUP, NO_SUCH_GROUP)
 
 
 def view_channel_message(account_id, connection, data):
-    view_util(account_id, connection, data, VIEW_CHANNEL_REGEX, channels, NOT_SUBSCRIBED_TO_CHANNEL, NO_SUCH_CHANNEL)
+    return view_util(account_id, connection, data, VIEW_CHANNEL_REGEX, channels, NOT_SUBSCRIBED_TO_CHANNEL,
+                     NO_SUCH_CHANNEL)
 
 
 def view_private_message(account_id, connection, data):
@@ -149,6 +156,8 @@ def view_private_message(account_id, connection, data):
                 send_command(connection, NO_PV_BETWEEN_THESE_USERS)
         else:
             send_command(connection, NO_SUCH_USER)
+        return True
+    return False
 
 
 def join_util(account_id, connection, data, regex_pattern, arr, already_join_cmd, success_cmd, not_exist_cmd):
@@ -164,15 +173,18 @@ def join_util(account_id, connection, data, regex_pattern, arr, already_join_cmd
                 send_command(connection, success_cmd)
         else:
             send_command(connection, not_exist_cmd)
+        return True
+    return False
 
 
 def join_channel(account_id, connection, data):
-    join_util(account_id, connection, data, JOIN_CHANNEL_REGEX, channels, CHANNEL_ALREADY_JOINED, CHANNEL_JOIN,
-              NO_SUCH_CHANNEL)
+    return join_util(account_id, connection, data, JOIN_CHANNEL_REGEX, channels, CHANNEL_ALREADY_JOINED, CHANNEL_JOIN,
+                     NO_SUCH_CHANNEL)
 
 
 def join_group(account_id, connection, data):
-    join_util(account_id, connection, data, JOIN_GROUP_REGEX, groups, GROUP_ALREADY_JOINED, GROUP_JOIN, NO_SUCH_GROUP)
+    return join_util(account_id, connection, data, JOIN_GROUP_REGEX, groups, GROUP_ALREADY_JOINED, GROUP_JOIN,
+                     NO_SUCH_GROUP)
 
 
 def create_channel(account_id, connection, data):
@@ -187,6 +199,8 @@ def create_channel(account_id, connection, data):
             send_command(connection, CHANNEL_CREATED)
         else:
             send_command(connection, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
+        return True
+    return False
 
 
 def create_group(account_id, connection, data):
@@ -201,6 +215,9 @@ def create_group(account_id, connection, data):
             send_command(connection, GROUP_CREATED)
         else:
             send_command(connection, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
+        return True
+    else:
+        return False
 
 
 # This function checks if an online user with that id exists or not. If it exists, request the client to enter another

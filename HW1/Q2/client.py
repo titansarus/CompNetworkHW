@@ -9,7 +9,7 @@ def handle_send(sock: socket.socket):
         while True:
             message = input()
             sock.send(message.encode(ENCODING))
-    except socket.error or socket.herror or socket.gaierror:
+    except (socket.error, socket.herror, socket.gaierror):
         sock.close()
 
 
@@ -46,7 +46,6 @@ def handle_receive(sock: socket.socket):
             elif msg == COMMANDS[CHANNEL_ALREADY_JOINED]:
                 print(USER_MSG[CHANNEL_ALREADY_JOINED])
 
-
             # Channel or Group not exists
             elif msg == COMMANDS[NO_SUCH_GROUP]:
                 print(USER_MSG[NO_SUCH_GROUP])
@@ -75,15 +74,13 @@ def handle_receive(sock: socket.socket):
             elif msg == COMMANDS[NO_PV_BETWEEN_THESE_USERS]:
                 print(USER_MSG[NO_PV_BETWEEN_THESE_USERS])
 
-
             elif msg == COMMANDS[NO_SUCH_GROUP_OR_USER_OR_CHANNEL]:
                 print(USER_MSG[NO_SUCH_GROUP_OR_USER_OR_CHANNEL])
-
-
             elif msg == COMMANDS[NO_SUCH_USER]:
                 print(USER_MSG[NO_SUCH_USER])
 
-
+            elif msg == COMMANDS[INVALID_COMMAND]:
+                print(USER_MSG[INVALID_COMMAND])
 
             # Show all messages. At first, we get how many bytes we need to receive then we receive whole message.
             elif msg.startswith(COMMANDS[SEND_ALL_MESSAGE_PROTOCOL]):

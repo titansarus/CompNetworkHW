@@ -37,7 +37,7 @@ GROUP_WRITE_INVALID_PERMISSION = "GROUP_WRITE_INVALID_PERMISSION"
 
 SEND_ALL_MESSAGE_PROTOCOL = "SEND_ALL_MESSAGE_PROTOCOL"
 
-NO_SUCH_GROUP_OR_USER = "NO_SUCH_GROUP_OR_USER"
+NO_SUCH_GROUP_OR_USER_OR_CHANNEL = "NO_SUCH_GROUP_OR_USER_OR_CHANNEL"
 NO_PV_BETWEEN_THESE_USERS = "NO_PV_BETWEEN_THESE_USERS"
 
 COMMANDS = {
@@ -59,7 +59,7 @@ COMMANDS = {
     CHANNEL_MESSAGE_SUCCESS: "8a2068b9a0929f28b8a34ff149cfb17df4d1d48b0a24592a55301a22d2aeccd5",
     NOT_SUBSCRIBED_TO_CHANNEL: "b21c2f6e8f367ac2c4efb601601a4cf170394e52606ea48f0134f998e5e052d9",
     SEND_ALL_MESSAGE_PROTOCOL: "d1e629d7d53dac8889393204c9fd740c6d5de3aa4bcb8fadbffc1915681c5cd8",
-    NO_SUCH_GROUP_OR_USER: "6cfbad1137b4e2304f0abececc830508d190e881c3789c31e4c18edeed3ad834",
+    NO_SUCH_GROUP_OR_USER_OR_CHANNEL: "e434813cfc1692a54a5bbd73acd52396de1c3af9c97b6f3812681a8b1f336f9c",
     GROUP_MESSAGE_SUCCESS: "a4461edd93b6f653cfe53198181a5a28c7d016fbbcc2fc69bfb955dbad5c0342",
     GROUP_WRITE_INVALID_PERMISSION: "af2e38eb4e4aac447860da4761ea2e2d7c5726a852bb1b1f181c8a0a05afdb4e",
     PRIVATE_MESSAGE_SUCCESS: "210bda5839a853c7d2e4c221372899efbbedd8bba86028099ecef52250cb01da",
@@ -87,7 +87,7 @@ USER_MSG = {
     CHANNEL_WRITE_INVALID_PERMISSION: "You don't have permission to write to this channel",
     CHANNEL_MESSAGE_SUCCESS: "Channel Message posted successfully",
     NOT_SUBSCRIBED_TO_CHANNEL: "You are not subscribed to this channel",
-    NO_SUCH_GROUP_OR_USER: "No Group or User with this id found",
+    NO_SUCH_GROUP_OR_USER_OR_CHANNEL: "No Group or User or Channel with this id found",
     GROUP_MESSAGE_SUCCESS: "Group Message posted successfully",
     GROUP_WRITE_INVALID_PERMISSION: "You don't have permission to write to this group (maybe because you are not subscribed)!",
     PRIVATE_MESSAGE_SUCCESS: "Private Message Sent Successfully",
@@ -101,7 +101,6 @@ CREATE_CHANNEL_REGEX = re.compile(r"^create channel (\w+)$")
 JOIN_GROUP_REGEX = re.compile(r"^join group (\w+)$")
 JOIN_CHANNEL_REGEX = re.compile(r"^join channel (\w+)$")
 SEND_PV_OR_GROUP_REGEX = re.compile(r"^send message to (\w+) '([^']+)'$")
-SEND_CHANNEL_REGEX = re.compile(r"^send channel message to (\w+) '([^']+)'$")
 VIEW_CHANNEL_REGEX = re.compile(r"^view channel (\w+)$")
 VIEW_GROUP_REGEX = re.compile(r"^view group (\w+)$")
 VIEW_PV_REGEX = re.compile(r"^view pv (\w+)$")

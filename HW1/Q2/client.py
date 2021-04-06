@@ -9,7 +9,7 @@ def handle_send(sock: socket.socket):
         while True:
             message = input()
             sock.send(message.encode(ENCODING))
-    except:
+    except socket.error or socket.herror or socket.gaierror:
         sock.close()
 
 

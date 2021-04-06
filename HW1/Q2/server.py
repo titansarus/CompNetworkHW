@@ -7,6 +7,7 @@ from HW1.Q2.Model.Channel import Channel
 from HW1.Q2.Model.Group import Group
 from HW1.Q2.constants import *
 
+# Locks for thread safety
 clients_lock = threading.Lock()
 accounts_lock = threading.Lock()
 channels_lock = threading.Lock()
@@ -18,16 +19,17 @@ accounts: list[Account] = []
 channels: list[Channel] = []
 groups: list[Group] = []
 
+# Private messages are stored in a dictionary. Key: (id1 , id2) -> Value: List of Messages between id1 and id2
 private_messages: dict[tuple[str, str], list[Message]] = {}
 
 
 # Send Command / Error / Success Message to Client
-def send_command(conn: socket.socket, cmd: str):
-    conn.send(COMMANDS[cmd].encode(ENCODING))
+def send_command(connection: socket.socket, cmd: str):
+    connection.send(COMMANDS[cmd].encode(ENCODING))
 
 
 # Send all messages that are stored in 'messages' list to the client
-def send_all_message(conn: socket.socket, messages: list[Message]):
+def send_all_message(connection: socket.socket, messages: list[Message]):
     all_msg = ""
     for msg in messages:
         all_msg += (str(msg) + "\n")
@@ -35,106 +37,106 @@ def send_all_message(conn: socket.socket, messages: list[Message]):
     # So client will be aware of how many bytes it should expect to get.
     send_len = len(all_msg) + 2
     send_length_msg = COMMANDS[SEND_ALL_MESSAGE_PROTOCOL] + " " + str(send_len)
-    conn.send(send_length_msg.encode(ENCODING))
-    conn.send(all_msg.encode(ENCODING))
+    connection.send(send_length_msg.encode(ENCODING))
+    connection.send(all_msg.encode(ENCODING))
 
 
-def id_exist_in_list(id, array):
-    return any([x for x in array if x.id == id])
+def id_exist_in_list(element_id, array):
+    return any([x for x in array if x.id == element_id])
 
 
-def client_exists(id):
-    return id in clients
+def client_exists(element_id):
+    return element_id in clients
 
 
-def handle_client(conn: socket.socket, addr):
-    print(f"[CONNECTED] {addr}")
-    account_id = make_or_find_account(conn)
+def handle_client(connection: socket.socket, address):
+    print(f"[CONNECTED] {address}")
+    account_id = make_or_find_account(connection)
     try:
         while True:
-            data = conn.recv(1024).decode(ENCODING)
+            data = connection.recv(1024).decode(ENCODING)
             # In each of these function, a regex match is checked. So only one of the will be executed.
-            create_group(account_id, conn, data)
-            create_channel(account_id, conn, data)
-            join_group(account_id, conn, data)
-            join_channel(account_id, conn, data)
-            view_channel_message(account_id, conn, data)
-            send_group_or_pv_message(account_id, conn, data)
-            view_group_message(account_id, conn, data)
-            view_private_message(account_id, conn, data)
-    except socket.error or socket.herror or socket.gaierror as e:
+            create_group(account_id, connection, data)
+            create_channel(account_id, connection, data)
+            join_group(account_id, connection, data)
+            join_channel(account_id, connection, data)
+            view_channel_message(account_id, connection, data)
+            send_group_or_pv_message(account_id, connection, data)
+            view_group_message(account_id, connection, data)
+            view_private_message(account_id, connection, data)
+    except socket.error or socket.herror or socket.gaierror:
         with clients_lock:
             clients.pop(account_id)
-    conn.close()
+    connection.close()
 
 
-def send_group_or_pv_message(account_id, conn, data):
+def send_group_or_pv_message(account_id, connection, data):
     result = SEND_PV_OR_GROUP_REGEX.match(data)
     if result:
         group_user_channel_id = result.group(1)
         msg_str = result.group(2)
         msg = Message(account_id, msg_str)
         if id_exist_in_list(group_user_channel_id, groups):
-            send_group_msg(account_id, conn, group_user_channel_id, msg)
+            send_group_msg(account_id, connection, group_user_channel_id, msg)
         elif id_exist_in_list(group_user_channel_id, accounts):
-            send_private_message(account_id, conn, group_user_channel_id, msg)
+            send_private_message(account_id, connection, group_user_channel_id, msg)
         elif id_exist_in_list(group_user_channel_id, channels):
-            send_channel_message(account_id, conn, group_user_channel_id, msg)
+            send_channel_message(account_id, connection, group_user_channel_id, msg)
         else:
-            send_command(conn, NO_SUCH_GROUP_OR_USER_OR_CHANNEL)
+            send_command(connection, NO_SUCH_GROUP_OR_USER_OR_CHANNEL)
 
 
-def send_channel_message(account_id, conn, channel_id, msg):
+def send_channel_message(account_id, connection, channel_id, msg):
     channel = [x for x in channels if x.id == channel_id][0]
     if account_id == channel.owner_id:
         channel.messages.append(msg)
-        send_command(conn, CHANNEL_MESSAGE_SUCCESS)
+        send_command(connection, CHANNEL_MESSAGE_SUCCESS)
     else:
-        send_command(conn, CHANNEL_WRITE_INVALID_PERMISSION)
+        send_command(connection, CHANNEL_WRITE_INVALID_PERMISSION)
 
 
-def send_private_message(account_id, conn, another_account_id, msg):
+def send_private_message(account_id, connection, another_account_id, msg):
     acc = [x for x in accounts if x.id == another_account_id][0]
     key = tuple(sorted((account_id, acc.id)))
     if key not in private_messages.keys():
         private_messages[key] = []
     private_messages[key].append(msg)
-    send_command(conn, PRIVATE_MESSAGE_SUCCESS)
+    send_command(connection, PRIVATE_MESSAGE_SUCCESS)
 
 
-def send_group_msg(account_id, conn, group_id, msg):
+def send_group_msg(account_id, connection, group_id, msg):
     grp = [x for x in groups if x.id == group_id][0]
     if account_id in grp.members:
         grp.messages.append(msg)
-        send_command(conn, GROUP_MESSAGE_SUCCESS)
+        send_command(connection, GROUP_MESSAGE_SUCCESS)
     else:
-        send_command(conn, GROUP_WRITE_INVALID_PERMISSION)
+        send_command(connection, GROUP_WRITE_INVALID_PERMISSION)
 
 
-def view_util(account_id, conn, data, regex_pattern, arr, not_sub_cmd, not_exist_cmd):
+def view_util(account_id, connection, data, regex_pattern, arr, not_sub_cmd, not_exist_cmd):
     result = regex_pattern.match(data)
     if result:
-        id = result.group(1)
-        if id_exist_in_list(id, arr):
-            ele = [x for x in arr if x.id == id][0]
-            if account_id in ele.members:
-                send_all_message(conn, ele.messages)
+        element_id = result.group(1)
+        if id_exist_in_list(element_id, arr):
+            element = [x for x in arr if x.id == element_id][0]
+            if account_id in element.members:
+                send_all_message(connection, element.messages)
             else:
-                send_command(conn, not_sub_cmd)
+                send_command(connection, not_sub_cmd)
 
         else:
-            send_command(conn, not_exist_cmd)
+            send_command(connection, not_exist_cmd)
 
 
-def view_group_message(account_id, conn, data):
-    view_util(account_id, conn, data, VIEW_GROUP_REGEX, groups, NOT_SUBSCRIBED_TO_GROUP, NO_SUCH_GROUP)
+def view_group_message(account_id, connection, data):
+    view_util(account_id, connection, data, VIEW_GROUP_REGEX, groups, NOT_SUBSCRIBED_TO_GROUP, NO_SUCH_GROUP)
 
 
-def view_channel_message(account_id, conn, data):
-    view_util(account_id, conn, data, VIEW_CHANNEL_REGEX, channels, NOT_SUBSCRIBED_TO_CHANNEL, NO_SUCH_CHANNEL)
+def view_channel_message(account_id, connection, data):
+    view_util(account_id, connection, data, VIEW_CHANNEL_REGEX, channels, NOT_SUBSCRIBED_TO_CHANNEL, NO_SUCH_CHANNEL)
 
 
-def view_private_message(account_id, conn, data):
+def view_private_message(account_id, connection, data):
     result = VIEW_PV_REGEX.match(data)
     if result:
         acc_id = result.group(1)
@@ -142,38 +144,38 @@ def view_private_message(account_id, conn, data):
             acc = [x for x in accounts if x.id == acc_id][0]
             key = tuple(sorted((account_id, acc.id)))
             if key in private_messages:
-                send_all_message(conn, private_messages[key])
+                send_all_message(connection, private_messages[key])
             else:
-                send_command(conn, NO_PV_BETWEEN_THESE_USERS)
+                send_command(connection, NO_PV_BETWEEN_THESE_USERS)
         else:
-            send_command(conn, NO_SUCH_USER)
+            send_command(connection, NO_SUCH_USER)
 
 
-def join_util(account_id, conn, data, regex_pattern, arr, already_join_cmd, success_cmd, not_exist_cmd):
+def join_util(account_id, connection, data, regex_pattern, arr, already_join_cmd, success_cmd, not_exist_cmd):
     result = regex_pattern.match(data)
     if result:
-        id = result.group(1)
-        if id_exist_in_list(id, arr):
-            ele = [x for x in arr if x.id == id][0]
-            if account_id in ele.members:
-                send_command(conn, already_join_cmd)
+        element_id = result.group(1)
+        if id_exist_in_list(element_id, arr):
+            element = [x for x in arr if x.id == element_id][0]
+            if account_id in element.members:
+                send_command(connection, already_join_cmd)
             else:
-                ele.members.append(account_id)
-                send_command(conn, success_cmd)
+                element.members.append(account_id)
+                send_command(connection, success_cmd)
         else:
-            send_command(conn, not_exist_cmd)
+            send_command(connection, not_exist_cmd)
 
 
-def join_channel(account_id, conn, data):
-    join_util(account_id, conn, data, JOIN_CHANNEL_REGEX, channels, CHANNEL_ALREADY_JOINED, CHANNEL_JOIN,
+def join_channel(account_id, connection, data):
+    join_util(account_id, connection, data, JOIN_CHANNEL_REGEX, channels, CHANNEL_ALREADY_JOINED, CHANNEL_JOIN,
               NO_SUCH_CHANNEL)
 
 
-def join_group(account_id, conn, data):
-    join_util(account_id, conn, data, JOIN_GROUP_REGEX, groups, GROUP_ALREADY_JOINED, GROUP_JOIN, NO_SUCH_GROUP)
+def join_group(account_id, connection, data):
+    join_util(account_id, connection, data, JOIN_GROUP_REGEX, groups, GROUP_ALREADY_JOINED, GROUP_JOIN, NO_SUCH_GROUP)
 
 
-def create_channel(account_id, conn, data):
+def create_channel(account_id, connection, data):
     result = CREATE_CHANNEL_REGEX.match(data)
     if result:
         channel_id = result.group(1)
@@ -182,12 +184,12 @@ def create_channel(account_id, conn, data):
             channel = Channel(channel_id, account_id)
             with channels_lock:
                 channels.append(channel)
-            send_command(conn, CHANNEL_CREATED)
+            send_command(connection, CHANNEL_CREATED)
         else:
-            send_command(conn, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
+            send_command(connection, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
 
 
-def create_group(account_id, conn, data):
+def create_group(account_id, connection, data):
     result = CREATE_GROUP_REGEX.match(data)
     if result:
         group_id = result.group(1)
@@ -196,29 +198,29 @@ def create_group(account_id, conn, data):
             group = Group(group_id, account_id)
             with groups_lock:
                 groups.append(group)
-            send_command(conn, GROUP_CREATED)
+            send_command(connection, GROUP_CREATED)
         else:
-            send_command(conn, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
+            send_command(connection, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
 
 
 # This function checks if an online user with that id exists or not. If it exists, request the client to enter another
 # id It an account exist but it is not online, match them. Else create a new user.
 # Also note that it also check uniqueness between channel and group ids.
-def make_or_find_account(conn):
+def make_or_find_account(connection):
     need_to_repeat = True
     account_id = ""
     while need_to_repeat:
-        send_command(conn, USER_ID_REQ)
-        data = conn.recv(1024)
+        send_command(connection, USER_ID_REQ)
+        data = connection.recv(1024)
         if not data:
-            conn.close()
+            connection.close()
         account_id = data.decode(ENCODING)
         # Uniqueness
         if not client_exists(account_id) and not id_exist_in_list(account_id, channels) and not id_exist_in_list(
                 account_id, groups):
             need_to_repeat = False
         else:
-            send_command(conn, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
+            send_command(connection, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
 
     # Check if account exist or need to be created.
     account_exist = False
@@ -228,16 +230,16 @@ def make_or_find_account(conn):
     else:
         account = Account(account_id)
     with clients_lock:
-        clients[account.id] = conn
+        clients[account.id] = connection
 
     # If account doesn't exist, append it to 'accounts' list.
     if not account_exist:
         with accounts_lock:
             accounts.append(account)
     if not account_exist:
-        send_command(conn, ACCOUNT_CREATE_SUCCESS)
+        send_command(connection, ACCOUNT_CREATE_SUCCESS)
     else:
-        send_command(conn, CONNECTED_TO_ALREADY_EXIST_ACCOUNT)
+        send_command(connection, CONNECTED_TO_ALREADY_EXIST_ACCOUNT)
     return account_id
 
 

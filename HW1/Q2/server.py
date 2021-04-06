@@ -21,18 +21,39 @@ groups: list[Group] = []
 private_messages: dict[tuple[str, str], list[Message]] = {}
 
 
+# Send Command / Error / Success Message to Client
 def send_command(conn: socket.socket, cmd: str):
     conn.send(COMMANDS[cmd].encode(ENCODING))
 
 
+# Send all messages that are stored in 'messages' list to the client
 def send_all_message(conn: socket.socket, messages: list[Message]):
     all_msg = ""
     for msg in messages:
         all_msg += (str(msg) + "\n")
+    # Because messages can be very long, at first their size is sent to the client.
+    # So client will be aware of how many bytes it should expect to get.
     send_len = len(all_msg) + 2
     send_length_msg = COMMANDS[SEND_ALL_MESSAGE_PROTOCOL] + " " + str(send_len)
     conn.send(send_length_msg.encode(ENCODING))
     conn.send(all_msg.encode(ENCODING))
+
+
+# Uniqueness check for main entities. Return True if Unique.
+def is_unique_channel(id):
+    return not any([x for x in channels if x.id == id])
+
+
+def is_unique_group(id):
+    return not any([x for x in groups if x.id == id])
+
+
+def is_unique_account(id):
+    return not any([x for x in accounts if x.user_id == id])
+
+
+def is_unique_client(id):
+    return id not in clients
 
 
 def handle_client(conn: socket.socket, addr):
@@ -41,6 +62,7 @@ def handle_client(conn: socket.socket, addr):
     try:
         while True:
             data = conn.recv(1024).decode(ENCODING)
+            # In each of these function, a regex match is checked. So only one of the will be executed.
             create_group(account_id, conn, data)
             create_channel(account_id, conn, data)
             join_group(account_id, conn, data)
@@ -184,30 +206,32 @@ def create_channel(account_id, conn, data):
     result = CREATE_CHANNEL_REGEX.match(data)
     if result:
         channel_id = result.group(1)
-        if not any([x for x in channels if x.id == channel_id]):
+        if is_unique_account(channel_id) and is_unique_group(channel_id) and is_unique_channel(channel_id):
             channel = Channel(channel_id, account_id)
             with channels_lock:
                 channels.append(channel)
             send_command(conn, CHANNEL_CREATED)
         else:
-            send_command(conn, CHANNEL_EXISTS)
+            send_command(conn, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
 
 
 def create_group(account_id, conn, data):
     result = CREATE_GROUP_REGEX.match(data)
     if result:
         group_id = result.group(1)
-        if not any([x for x in groups if x.id == group_id]):
+        if is_unique_account(group_id) and is_unique_group(group_id) and is_unique_channel(group_id):
             group = Group(group_id, account_id)
             with groups_lock:
                 groups.append(group)
             send_command(conn, GROUP_CREATED)
         else:
-            send_command(conn, GROUP_EXISTS)
+            send_command(conn, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
 
 
+# This function checks if an online user with that id exists or not. If it exists, request the client to enter another
+# id It an account exist but it is not online, match them. Else create a new user.
+# Also note that it also check uniqueness between channel and group ids.
 def make_or_find_account(conn):
-    # TODO Check UNIQUENESS BETWEEN GROUPS AND ACCOUNTS.
     need_to_repeat = True
     account_id = ""
     while need_to_repeat:
@@ -216,21 +240,26 @@ def make_or_find_account(conn):
         if not data:
             conn.close()
         account_id = data.decode(ENCODING)
-        if account_id not in clients:
+        # Uniqueness
+        if is_unique_client(account_id) and is_unique_channel(account_id) and is_unique_group(account_id):
             need_to_repeat = False
         else:
-            send_command(conn, ACCOUNT_ALREADY_EXIST)
+            send_command(conn, ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST)
+
+    # Check if account exist or need to be created.
     account_exist = False
-    if any([x for x in accounts if x.user_id == account_id]):
+    if not is_unique_account(account_id):
         account = [x for x in accounts if x.user_id == account_id][0]
         account_exist = True
     else:
         account = Account(account_id)
     with clients_lock:
         clients[account.user_id] = conn
-        if not account_exist:
-            with accounts_lock:
-                accounts.append(account)
+
+    # If account doesn't exist, append it to 'accounts' list.
+    if not account_exist:
+        with accounts_lock:
+            accounts.append(account)
     if not account_exist:
         send_command(conn, ACCOUNT_CREATE_SUCCESS)
     else:

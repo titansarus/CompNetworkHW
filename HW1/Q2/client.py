@@ -23,8 +23,8 @@ def handle_receive(sock: socket.socket):
             # Account
             elif msg == COMMANDS[ACCOUNT_CREATE_SUCCESS]:
                 print(USER_MSG[ACCOUNT_CREATE_SUCCESS])
-            elif msg == COMMANDS[ACCOUNT_ALREADY_EXIST]:
-                print(USER_MSG[ACCOUNT_ALREADY_EXIST])
+            elif msg == COMMANDS[ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST]:
+                print(USER_MSG[ACCOUNT_GROUP_CHANNEL_ALREADY_EXIST])
             elif msg == COMMANDS[CONNECTED_TO_ALREADY_EXIST_ACCOUNT]:
                 print(USER_MSG[CONNECTED_TO_ALREADY_EXIST_ACCOUNT])
 
@@ -46,11 +46,6 @@ def handle_receive(sock: socket.socket):
             elif msg == COMMANDS[CHANNEL_ALREADY_JOINED]:
                 print(USER_MSG[CHANNEL_ALREADY_JOINED])
 
-            # Channel or Group exists before
-            elif msg == COMMANDS[GROUP_EXISTS]:
-                print(USER_MSG[GROUP_EXISTS])
-            elif msg == COMMANDS[CHANNEL_EXISTS]:
-                print(USER_MSG[CHANNEL_EXISTS])
 
             # Channel or Group not exists
             elif msg == COMMANDS[NO_SUCH_GROUP]:

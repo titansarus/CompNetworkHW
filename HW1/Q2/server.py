@@ -28,6 +28,14 @@ def send_command(connection: socket.socket, cmd: str):
     connection.send(COMMANDS[cmd].encode(ENCODING))
 
 
+def notify_channel_group(cg: Channel or Group, msg: Message, is_channel : bool):
+    intro = "New Message in Channel" if is_channel else "New Message in Group"
+    k = clients.keys()
+    for account in cg.members:
+        if account in k:
+            clients[account].send(f"{intro} {cg.id}\n{msg}".encode(ENCODING))
+
+
 # Send all messages that are stored in 'messages' list to the client
 def send_all_message(connection: socket.socket, messages: list[Message]):
     all_msg = ""
@@ -95,6 +103,7 @@ def send_channel_message(account_id, connection, channel_id, msg):
     if account_id == channel.owner_id:
         channel.messages.append(msg)
         send_command(connection, CHANNEL_MESSAGE_SUCCESS)
+        notify_channel_group(channel, msg,True)
     else:
         send_command(connection, CHANNEL_WRITE_INVALID_PERMISSION)
 
@@ -113,6 +122,7 @@ def send_group_msg(account_id, connection, group_id, msg):
     if account_id in grp.members:
         grp.messages.append(msg)
         send_command(connection, GROUP_MESSAGE_SUCCESS)
+        notify_channel_group(grp, msg, False)
     else:
         send_command(connection, GROUP_WRITE_INVALID_PERMISSION)
 

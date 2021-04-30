@@ -162,6 +162,8 @@
 	
 	\section{سوال اول}
 	
+	\textbf{توجه: امکان زوم بر روی تمامی تصاویری که در متن قرار دارند وجود دارد.}
+	
 	\begin{enumerate}
 		
 		\item
@@ -205,14 +207,16 @@
 \begin{latin}
 	\begin{verbatim}
 		Answers
-		www.oracle.com: type CNAME, class IN, cname ds-www.oracle.com.edgekey.net
+		www.oracle.com: type CNAME, class IN,
+		 cname ds-www.oracle.com.edgekey.net
 		Name: www.oracle.com
 		Type: CNAME (Canonical NAME for an alias) (5)
 		Class: IN (0x0001)
 		Time to live: 497 (8 minutes, 17 seconds)
 		Data length: 31
 		CNAME: ds-www.oracle.com.edgekey.net
-		ds-www.oracle.com.edgekey.net: type CNAME, class IN, cname e2581.dscx.akamaiedge.net
+		ds-www.oracle.com.edgekey.net: type CNAME, class IN,
+		 cname e2581.dscx.akamaiedge.net
 		Name: ds-www.oracle.com.edgekey.net
 		Type: CNAME (Canonical NAME for an alias) (5)
 		Class: IN (0x0001)
@@ -250,7 +254,131 @@
 	
 	پیش از بررس نتایج باید بررسی کنیم که آی‌پی آدرس DNS-Server های شکن متعلق به کجاست. در سایت دو آی‌پی آدرس قرار گرفته است. اولین مورد \lr{\Verb+178.22.122.100+} است که متعلق به شرکت آسیاتک (\lr{Asiatech Data Transmission company}) بوده و دومین آی‌پی \lr{\Verb+185.51.200.2+} است که متعلق به شرکت مهندسی صفرویک پرداز (\lr{Sefroyek Pardaz Engineering Co. LTD}) است.
 	
+با انجام تنظیمات مربوطه و وارد کردن آدرس Oracle داریم:
+
+			\begin{center}
+		\includegraphics[width = 1.0 \textwidth]{images/3.png}
+	\end{center}
 	
+	همان طور که در تصویر مشخص است در نتیجه درخواست آدرس \lr{\Verb+www.oracle.com+} خروجی به این صورت بوده که این آدرس Alias ای برای آدرس \lr{\Verb+us1.shecan.ir+} است و آدرس آی‌پی \lr{\Verb+162.223.88.52+} گزارش شده است. این آدرس آی‌پی در آمریکا قرار داشته و متعلق به شرکتی به اسم ColoUp است. با مراجعه به سایت این شرکت می‌توان مشاهده کرد که این شرکت مرتبط به خدمات شبکه است و البته بخش گزارش خطا به زبان فارسی هم دارد در نتیجه می‌توان به این نتیجه رسید که با شکن در ارتباط است.
+			\begin{center}
+		\includegraphics[width = 0.5 \textwidth]{images/4.png}
+	\end{center}
+
+خروجی برگردانده شده به صورت زیر است:
+
+\begin{latin}
+	\begin{verbatim}
+		Answers
+		www.oracle.com: type CNAME, class IN, cname us1.shecan.ir
+		Name: www.oracle.com
+		Type: CNAME (Canonical NAME for an alias) (5)
+		Class: IN (0x0001)
+		Time to live: 118 (1 minute, 58 seconds)
+		Data length: 15
+		CNAME: us1.shecan.ir
+		us1.shecan.ir: type A, class IN, addr 162.223.88.52
+		Name: us1.shecan.ir
+		Type: A (Host Address) (1)
+		Class: IN (0x0001)
+		Time to live: 214 (3 minutes, 34 seconds)
+		Data length: 4
+		Address: 162.223.88.52
+		
+	\end{verbatim}
+	\end{latin}
+
+سایر موارد مربوط به \lr{Oracle} که مشاهده می‌شود، مربوط به \lr{CDN} ها و موارد متفرقه دیگری هستند که تحریم نبوده و همان \lr{IP} اصلی آن ها برگردانده شده است. البته \lr{\Verb+go.oracle.com+} هم تحریم است و برای آن هم آدرس مربوط به \lr{\Verb+ us1.shecan.ir+} برگردانده شده است.
+
+بدین ترتیب به نظر می‌رسد که درخواست‌هایی که ما برای سایت \lr{Oracle} می‌فرستیم به جای این که مستقیما به سایت \lr{Oracle} برود، به سایت واسطه‌ای که آدرس آن \lr{\Verb+ us1.shecan.ir +} است می‌رود و سپس از طریق این سایت به \lr{Oracle} منتقل شده و جواب‌ها هم از طریق همین سایت با آی‌پی 
+\lr{\Verb+ 162.223.88.52 +}
+برای ما بر می‌گردد:
+		\begin{center}
+	\includegraphics[width = 0.5 \textwidth]{images/5.png}
+\end{center}
+
+از آن‌جایی که این آی‌پی در آمریکا قرار دارد و درخواست‌های ما از طریق آن به \lr{Oracle} منتقل می‌شود، \lr{Oracle} تحریم را اعمال نکرده و اطلاعات را به سرورهای شکن فرستاده و از آن طریق پاسخ مربوطه به ما بر می‌گردد.
+
+در مورد مواردی که تحریم نیستند، آدرس ای‌پی تغییری نمی‌کند و در این زمینه شکن تغییری در روند کار ایجاد نکرده و مانند یک \lr{DNS-Server} معمولی عمل می‌کند.
+
+
+نتایجی که برای فیسبوک بر می‌گردد به صورت زیر است:
+
+		\begin{center}
+	\includegraphics[width = 0.5 \textwidth]{images/6.png}
+\end{center}
+
+آی‌پی‌هایی که با آدرس‌های
+\lr{\Verb+69.171.250.35+}
+و
+\lr{\Verb+157.240.194.35+}
+برگردانده می‌شوند، هر دو واقعا متعلق به فیسبوک هستند. اما با این حال اگر پکت‌های TCP جا به جا شده به این IP را مشاهده کنیم وضعیت زیر را می‌بینیم:
+
+		\begin{center}
+	\includegraphics[width = 0.5 \textwidth]{images/7.png}
+	\end{center}
+
+مشاهده می‌شود که اکثر موارد به رنگ سیاه یا قرمز هستند. سیاه با حروف قرمز به معنی \lr{BAD TCP} و قرمز با حروف زرد به معنی \lr{TCP RST} است. تقریبا هیچ‌کدام از پکت‌های ارسالی ما به درستی به فیسبوک منتقل نشده‌اند. این بدین معنی است که فیلترینگ اعمال شده برای فیسبوک تنها در لایه \lr{DNS} نیست. بلکه فیلترینگ‌های دیگری هم اعمال شده است که پکت‌ها را بعد از رسیدن به \lr{ISP}‌های داخلی، با توجه به آدرس آن که مربوط به فیسبوک است و جزو سایت‌های فیلتر شده است، \lr{Drop} می‌کند تا به فیسبوک نرسند.
+
+در این مورد \lr{Shecan} هم نقش خاصی ایفا نکرده و صرفا آدرس واقعی سایت \lr{\Verb+www.facebook.com+} را به ما برگردانده است و از آن‌جایی که جزو سایت‌های تحریمی هم نیست، آدرس سرورهای \lr{\Verb+us1.shecan.ir+} را به ما نداده است.
+
+
+\item
+
+خیر همان طور که در بالا توضیح داده شد، روش کار شکن بدین صورت است که لیستی از سایت‌های تحریم شده دارد و برای آن سایت‌ها، آی‌پی مربوط به سرورهای خود شکن را که در کشور دیگری مستقر هستند به ما بر می‌گرداند. بدین ترتیب، ریکوئست‌های ما به آن سایت از طریق سرورهای شکن که به نوعی نقش \lr{Man in the Middle} را ایفا کرده است به آن سایت منتقل شده و جواب‌ها از طریق این سرور شکن به ما می‌رسد.
+
+در مورد سایت‌های فیلتر شده، شکن یا عملکردی مانند \lr{DNS} های \lr{ISP} ها داشته و \lr{IP} نامعتبری بر می‌گرداند و یا این که نهایتا \lr{IP} واقعی آن سایت را به ما می‌دهد. حتی با وجود این \lr{IP} واقعی هم امکان دسترسی به سایت ممکن نیست چون درخواست ما در راه به سرورهای \lr{ISP} ها می‌رسد و در آن جا با توجه به به این که مقصد آن جزو \lr{Blacklist} سایت‌های فیلتر شده است، اجازه انتقال به آن داده نمی‌شود و \lr{Drop} می‌شود. فیلترینگ سایتی نظیر فیسبوک صرفا در لایه DNS اعمال نشده، بلکه در لایه‌های دیگر هم اعمال شده است که اجازه انتقال بسته‌های درخواستی ما داده نشود تا حتی با داشتن آی‌پی سایت هم نتوان به آن دسترسی پیدا کرد.
+
+
+\item
+
+در قسمت قبلی هم یکی از IP های facebook نوشته شد. آی‌پی دیگری که با متصل بودن VPN فرانسه بدست آمد، \lr{\Verb+ 179.60.195.36+} بود که واقعا IP ثبت شده شرکت Facebook بوده و موقعیت جغرافیایی آن هم در بلژیک است که همسایه فرانسه است.  در صورت وصل بودن VPN، اطلاعات از طریق پروتکل ESP به سرورهای VPN ارسال شده و از طریق آن اطلاعات مربوط به فیسبوک دریافت می‌شود و سایت بدون مشکل باز می‌شود. با این حال در صورت قطع VPN و تلاش برای دسترسی به این آی‌پی وضعیت بسته‌ها مشابه زیر خواهد بود:
+
+
+
+	\begin{center}
+	\includegraphics[width = 0.5 \textwidth]{images/8.png}
+\end{center}
+
+در ابتدا تعدادی بسته اولیه رد و بدل شده اما نتیجه نهایی به \lr{TCP RST} ختم شده است و همچنین با بررسی محتویات پیام‌های TCP آمده متوجه می‌شویم که همگی آن‌ها بسیار کوتاه هستند و اطلاعات کافی سایت را در بر ندارند.
+
+
+\begin{center}
+	\includegraphics[width = 0.5 \textwidth]{images/9.png}
+\end{center}
+
+دلیل این موضوع هم این است که عملا فیلترینگ برای این سایت‌ها صرفا از لایه DNS نیست. بلکه به نوشته ویکی‌پدیا تکنولوژی \lr{Deep Packet Inspecting} در بخش فیلترینگ به کار رفته که جزئیات بسته‌های رد و بدل شده را بررسی می‌کند. بدین ترتیب مواردی نظیر آدرس مبدا یا مقصد و همچنین محتویات و کلمات استفاده شده در متن پیام در صورت رمزنگاری نشدن آن می‌تواند باعث بشود که Packet مورد نظر به عنوان محتوای فیلتر شده شناسایی شده و بعد از رسیدن به ISP ها Drop شود و در مواردی نظیر بالا تنها شامل رسیدن بسته‌هایی با متحوای بسیار کم هستیم.
+
+علاوه بر این \textbf{نکته مهم} دیگری هم وجود دارد و آن هم بررسی بسته http ارسال شده است. با بررسی این بسته‌ها به مورد زیر می‌رسیم:
+
+\begin{center}
+	\includegraphics[width = 0.5 \textwidth]{images/10.png}
+\end{center}
+
+پاسخ دریافت شده برای درخواست \lr{\Verb+GET+} از این آدرس، کد \lr{\Verb+301 Moved Permanently+} است.
+
+
+\begin{latin}
+	\begin{verbatim}
+	Hypertext Transfer Protocol
+	HTTP/1.1 301 Moved Permanently\r\n
+	Location: http://www.facebook.com/\r\n
+	Content-Type: text/html; charset="utf-8"\r\n
+	Date: Fri, 30 Apr 2021 15:11:44 GMT\r\n
+	Alt-Svc: h3-29=":443"; ma=3600,h3-27=":443"; ma=3600\r\n
+	Connection: keep-alive\r\n
+	Content-Length: 0\r\n
+	\r\n
+	[HTTP response 1/1]
+	[Time since request: 0.170568000 seconds]
+	[Request in frame: 19]
+	[Request URI: http://179.60.195.36/]
+		
+	\end{verbatim}
+\end{latin}
+
+آدرس جدید این سایت \lr{facebook.com} اعلام شده است. در نتیجه دوباره سیستم سعی‌ می‌کند از طریق DNS آدرس جدید را پیدا کند ولی در این زمینه هم با فیلترینگ مربوط به DNS رو به رو می‌شود و با آدرس \lr{\Verb+10.10.34.36+} رو‌به‌رو می‌شود که آدرس معتبری نیست.
+
 	
 \end{enumerate}
 \end{document}

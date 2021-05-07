@@ -486,30 +486,31 @@
 هدر بلند ساختاری مانند زیر دارد:
 
 
-
-\begin{latin}
 	\begin{center}
+\begin{latin}
+
 	\begin{Verbatim}
-	0                   1                   2                   3
-	0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-	+-+-+-+-+-+-+-+-+
-	|1|   Type (7)  |
-	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	|                                                               |
-	+                       Connection ID (64)                      +
-	|                                                               |
-	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	|                         Version (32)                          |
-	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	|                       Packet Number (32)                      |
-	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	|                          Payload (*)                        ...
-	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	
+0                   1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+
+|1|   Type (7)  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                       Connection ID (64)                      +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         Version (32)                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                       Packet Number (32)                      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          Payload (*)                        ...
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
 	\end{Verbatim}
 	
-\end{center}
+
 \end{latin}
+\end{center}
 
 این هدرها قبل از کامل شدن فرآیند ارتباط اولیه و مشخص شدن ورژن استفاده می‌شوند.
 
@@ -700,6 +701,178 @@
 
 \end{enumerate}
 
+\newpage
+\section{سوال سوم}
+
+\begin{enumerate}
+	\item 
+	بعد از اجرای اسکریپت پایتون، دستورات زیر را اجرا می‌کنیم:
+	
+	\begin{latin}
+	\begin{lstlisting}[language=bash]
+		xterm h1 h3
+	\end{lstlisting}
+\end{latin}
+
+با \lr{\Verb+ifconfig+} متوجه‌ می‌شویم که IP هاست اول \lr{\Verb+10.0.0.1+} است.
+
+دستور زیر را در هاست اول اجرا می‌کنیم:
+	
+\begin{latin}
+	\begin{lstlisting}[language=bash]
+		iperf3 -s
+	\end{lstlisting}
+\end{latin}
+
+و در هاست سوم دستور زیر را اجرا می‌کنیم:
+\begin{latin}
+	\begin{lstlisting}[language=bash]
+		iperf3 -c 10.0.0.1 -t 10
+	\end{lstlisting}
+\end{latin}
+
+\begin{latin}
+	\begin{Verbatim}
+Connecting to host 10.0.0.1, port 5201
+[  6] local 10.0.0.3 port 47408 connected to 10.0.0.1 port 5201
+[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
+[  6]   0.00-1.00   sec  2.42 MBytes  20.3 Mbits/sec    0   31.1 KBytes       
+[  6]   1.00-2.00   sec  2.24 MBytes  18.8 Mbits/sec    0   31.1 KBytes       
+[  6]   2.00-3.00   sec  2.24 MBytes  18.8 Mbits/sec    0   31.1 KBytes       
+[  6]   3.00-4.00   sec  2.24 MBytes  18.7 Mbits/sec    0   31.1 KBytes       
+[  6]   4.00-5.00   sec  2.24 MBytes  18.8 Mbits/sec    0   31.1 KBytes       
+[  6]   5.00-6.00   sec  2.17 MBytes  18.2 Mbits/sec    0   31.1 KBytes       
+[  6]   6.00-7.00   sec  2.30 MBytes  19.3 Mbits/sec    0   31.1 KBytes       
+[  6]   7.00-8.00   sec  2.11 MBytes  17.7 Mbits/sec    0   31.1 KBytes       
+[  6]   8.00-9.00   sec  2.30 MBytes  19.3 Mbits/sec    0   31.1 KBytes       
+[  6]   9.00-10.00  sec  2.17 MBytes  18.3 Mbits/sec    0   31.1 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth       Retr
+[  6]   0.00-10.00  sec  22.4 MBytes  18.8 Mbits/sec    0             sender
+[  6]   0.00-10.00  sec  22.3 MBytes  18.7 Mbits/sec                  receiver
+	
+		
+	\end{Verbatim}
+\end{latin}
+
+همان طور که مشاهده‌ می‌شود، گذردهی نهایی \lr{\Verb+18.8 Mbits/sec+} گزارش شده است. چیزی که انتظار داریم در اصل $20$ است اما این عدد هم تفاوت چندانی ندارد.  دلیل این تفاوت می‌تواند به این مربوط باشد که در این جا عملا یک سوییچ واقعی شبیه سازی شده است و یکسری پارامترهای درونی خود پروتکل \lr{OpenFlow1.3} تاثیر گذار بوده‌اند. مخصوصا در قسمت‌های بعدی شاهد تفاوت‌های جدی‌تری خواهیم بود که آن ها را بهتر می‌توان توجیه کرد. 
+
+ضمنا اعداد بالا تا حد خوبی برای هر دو طرف یکسان هستند و تفاوت معناداری بین‌‌ آن‌ها مشاهده نمی‌شود.
+
+\item
+دستورات مشابهی را مانند بالا برای هاست اول و دوم اجرا می‌کنیم.
+
+نتایج برای هر کدام از طرفین متفاوت است. برای فرستنده:
+
+
+\begin{latin}
+	\begin{Verbatim}
+[  6] local 10.0.0.2 port 43558 connected to 10.0.0.1 port 5201
+[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
+[  6]   0.00-1.00   sec   362 KBytes  2.96 Mbits/sec    0    110 KBytes       
+[  6]   1.00-2.00   sec  7.36 MBytes  61.7 Mbits/sec    0   1.38 MBytes       
+[  6]   2.00-3.00   sec  3.75 MBytes  31.5 Mbits/sec    0   1.91 MBytes       
+[  6]   3.00-4.00   sec  2.50 MBytes  21.0 Mbits/sec    0   2.02 MBytes       
+[  6]   4.00-5.00   sec  2.50 MBytes  21.0 Mbits/sec    0   2.14 MBytes       
+[  6]   5.00-6.00   sec  2.50 MBytes  21.0 Mbits/sec    0   2.25 MBytes       
+[  6]   6.00-7.00   sec  2.50 MBytes  21.0 Mbits/sec    0   2.36 MBytes       
+[  6]   7.00-8.00   sec  2.50 MBytes  21.0 Mbits/sec    0   2.48 MBytes       
+[  6]   8.00-9.00   sec  2.50 MBytes  21.0 Mbits/sec    0   2.58 MBytes       
+[  6]   9.00-10.00  sec  2.50 MBytes  21.0 Mbits/sec    0   2.69 MBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth       Retr
+[  6]   0.00-10.00  sec  29.0 MBytes  24.3 Mbits/sec    0             sender
+[  6]   0.00-10.00  sec  21.9 MBytes  18.4 Mbits/sec                 receiver
+		
+		
+		
+		
+	\end{Verbatim}
+\end{latin}
+
+اما در سمت گیرنده شاهد چنین اعداد هستیم:
+
+\begin{latin}
+	\begin{Verbatim}
+[  7] local 10.0.0.1 port 5201 connected to 10.0.0.2 port 43558
+[ ID] Interval           Transfer     Bandwidth
+[  7]   0.00-1.00   sec  82.0 KBytes   672 Kbits/sec                  
+[  7]   1.00-2.00   sec  1.27 MBytes  10.7 Mbits/sec                  
+[  7]   2.00-3.00   sec  2.27 MBytes  19.0 Mbits/sec                  
+[  7]   3.00-4.00   sec  2.27 MBytes  19.0 Mbits/sec                  
+[  7]   4.00-5.00   sec  2.27 MBytes  19.0 Mbits/sec                  
+[  7]   5.00-6.00   sec  2.27 MBytes  19.0 Mbits/sec                  
+[  7]   6.00-7.00   sec  2.27 MBytes  19.1 Mbits/sec                  
+[  7]   7.00-8.00   sec  2.27 MBytes  19.0 Mbits/sec                  
+[  7]   8.00-9.00   sec  1.97 MBytes  16.5 Mbits/sec                  
+[  7]   9.00-10.00  sec  2.27 MBytes  19.0 Mbits/sec                  
+[  7]  10.00-11.03  sec   662 KBytes  5.27 Mbits/sec                  
+[  7]  11.03-12.37  sec  38.2 KBytes   233 Kbits/sec                  
+[  7]  12.37-13.37  sec  80.6 KBytes   658 Kbits/sec                  
+[  7]  13.37-14.37  sec   628 KBytes  5.18 Mbits/sec                  
+[  7]  14.37-15.37  sec  17.0 KBytes   139 Kbits/sec                  
+[  7]  15.37-16.37  sec  17.0 KBytes   138 Kbits/sec                  
+[  7]  16.37-17.04  sec   105 KBytes  1.28 Mbits/sec                  
+[  7]  17.04-18.03  sec   116 KBytes   963 Kbits/sec                  
+[  7]  18.03-19.36  sec  46.7 KBytes   287 Kbits/sec                  
+[  7]  19.36-20.36  sec  11.3 KBytes  92.7 Kbits/sec                  
+[  7]  20.36-21.22  sec  91.9 KBytes   882 Kbits/sec                  
+[  7]  21.22-22.36  sec  74.9 KBytes   537 Kbits/sec                  
+[  7]  22.36-23.36  sec  18.4 KBytes   151 Kbits/sec                  
+[  7]  23.36-24.36  sec   109 KBytes   891 Kbits/sec                  
+[  7]  24.36-25.36  sec  15.6 KBytes   128 Kbits/sec                  
+[  7]  25.36-26.36  sec  60.8 KBytes   499 Kbits/sec                  
+[  7]  26.36-26.82  sec   679 KBytes  12.0 Mbits/sec                  
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth       Retr
+[  7]   0.00-26.82  sec  29.0 MBytes  9.06 Mbits/sec    0             sender
+[  7]   0.00-26.82  sec  21.9 MBytes  6.85 Mbits/sec                  receiver
+
+	\end{Verbatim}
+\end{latin}
+
+مشاهده می‌کنیم که در سمت دریافت کننده اعداد \lr{Throughput} بسیار کمتر هستند. دلیل این موضوع به دلیل \lr{Latency} موجود در شبکه است. این موضوع باعث شده که بسته ها دیرتر به مقصد برسند و به علاوه شاهد تغییرات جدی در \lr{Congestion Window} سمت فرستنده هم هستیم.
+
+اثر اصلی \lr{Latency} در این است که باعث می‌شود که Ack ها به موقع دریافت نشوند.
+
+در حالت قبلی RTT کمتر از $1ms$ بود و تنها موضوعی که گلوگاه بود، سرعت خود لینک بود ولی در این جا RTT حدود $200ms$ است و این موضوع گلوگاه ایجاد کرده است.
+
+\item
+
+
+با اجرای دستورات مشابه، نتیجه زیر را داریم:
+
+\begin{latin}
+	\begin{Verbatim}
+
+[  6] local 10.0.0.5 port 47704 connected to 10.0.0.4 port 5201
+[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
+[  6]   0.00-1.00   sec  2.16 MBytes  18.0 Mbits/sec   22   11.3 KBytes       
+[  6]   1.00-2.00   sec  1.12 MBytes  9.36 Mbits/sec   12   9.90 KBytes       
+[  6]   2.00-3.00   sec  1018 KBytes  8.38 Mbits/sec    4   11.3 KBytes       
+[  6]   3.00-4.00   sec   891 KBytes  7.30 Mbits/sec    4   9.90 KBytes       
+[  6]   4.00-5.00   sec  1018 KBytes  8.34 Mbits/sec    2   12.7 KBytes       
+[  6]   5.00-6.00   sec   891 KBytes  7.29 Mbits/sec   12   9.90 KBytes       
+[  6]   6.00-7.00   sec   764 KBytes  6.26 Mbits/sec    3   11.3 KBytes       
+[  6]   7.00-8.00   sec  1018 KBytes  8.33 Mbits/sec    5   9.90 KBytes       
+[  6]   8.00-9.00   sec  1.99 MBytes  16.7 Mbits/sec   18   14.1 KBytes       
+[  6]   9.00-10.00  sec  2.24 MBytes  18.8 Mbits/sec   13   17.0 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth       Retr
+[  6]   0.00-10.00  sec  13.0 MBytes  10.9 Mbits/sec   95             sender
+[  6]   0.00-10.00  sec  12.8 MBytes  10.7 Mbits/sec                  receiver
+
+
+	\end{Verbatim}
+\end{latin}
+
+
+برای سمت دیگر هم به همین شکل است. مشاهده‌ می‌کنیم که گذردهی و Bandwidth حدودا نصف شده است. 
+در اصل Loss به دو شکل تاثیر گذار است. از یک سو نیاز به ارسال مجدد بسته‌های از دست رفته داریم. از سوی دیگر Cwnd نمی‌تواند به حالت بهینه ثابتی دست یابد. به علاوه تاثیر مستقیم آن‌هم این است که دیتایی که از دست رفته باشد را عملا نمی‌توان در Throughput به حساب آورد و همین موضوع هم موجب گذردهی می‌شود.
+
+
+
+\end{enumerate}
 \end{document}
 
 

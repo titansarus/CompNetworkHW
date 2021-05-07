@@ -871,6 +871,170 @@ Connecting to host 10.0.0.1, port 5201
 در اصل Loss به دو شکل تاثیر گذار است. از یک سو نیاز به ارسال مجدد بسته‌های از دست رفته داریم. از سوی دیگر Cwnd نمی‌تواند به حالت بهینه ثابتی دست یابد. به علاوه تاثیر مستقیم آن‌هم این است که دیتایی که از دست رفته باشد را عملا نمی‌توان در Throughput به حساب آورد و همین موضوع هم موجب گذردهی می‌شود.
 
 
+\item
+
+سه رقم آخر $212$ است.
+
+هاست چهارم را سرور می‌کنیم.
+
+\begin{latin}
+	\begin{lstlisting}[language=bash]
+		iperf3 -s
+	\end{lstlisting}
+\end{latin}
+
+و از هاست اول به آن داده ارسال می‌کنیم.
+
+$$212 MB = 222298112 Byte$$
+
+
+\begin{latin}
+	\begin{lstlisting}[language=bash]
+		 iperf3 -c 10.0.0.4 -J>result.json -n 222298112 
+	\end{lstlisting}
+\end{latin}
+
+خروجی نهایی بدین شکل است:
+
+\begin{latin}
+\begin{Verbatim}
+Accepted connection from 10.0.0.1, port 39392
+[  7] local 10.0.0.4 port 5201 connected to 10.0.0.1 port 39394
+[ ID] Interval           Transfer     Bandwidth
+[  7]   0.00-1.00   sec   139 KBytes  1.13 Mbits/sec                  
+[  7]   1.00-2.00   sec  1.12 MBytes  9.43 Mbits/sec                  
+[  7]   2.00-3.00   sec  2.19 MBytes  18.3 Mbits/sec                  
+[  7]   3.00-4.00   sec  2.23 MBytes  18.7 Mbits/sec                  
+[  7]   4.00-5.00   sec  2.24 MBytes  18.8 Mbits/sec                  
+[  7]   5.00-6.00   sec  1.96 MBytes  16.4 Mbits/sec                  
+[  7]   6.00-7.00   sec   974 KBytes  7.98 Mbits/sec                  
+[  7]   7.00-8.00   sec   899 KBytes  7.37 Mbits/sec                  
+[  7]   8.00-9.00   sec  1018 KBytes  8.32 Mbits/sec                  
+[  7]   9.00-10.00  sec  1.14 MBytes  9.59 Mbits/sec                  
+[  7]  10.00-11.00  sec  1.09 MBytes  9.17 Mbits/sec                  
+[  7]  11.00-12.00  sec  1.01 MBytes  8.48 Mbits/sec                  
+[  7]  12.00-13.00  sec  1.05 MBytes  8.78 Mbits/sec                  
+[  7]  13.00-14.00  sec   991 KBytes  8.13 Mbits/sec                  
+[  7]  14.00-15.00  sec  1.08 MBytes  9.05 Mbits/sec                  
+[  7]  15.00-16.00  sec  2.10 MBytes  17.6 Mbits/sec                  
+[  7]  16.00-17.00  sec  2.21 MBytes  18.5 Mbits/sec                  
+[  7]  17.00-18.00  sec  2.23 MBytes  18.7 Mbits/sec                  
+[  7]  18.00-19.00  sec  2.23 MBytes  18.7 Mbits/sec                  
+[  7]  19.00-20.00  sec  2.23 MBytes  18.7 Mbits/sec                  
+[  7]  20.00-21.00  sec  1.37 MBytes  11.5 Mbits/sec                  
+[  7]  21.00-22.00  sec  70.7 KBytes   579 Kbits/sec                  
+[  7]  22.00-23.00  sec  5.25 MBytes  44.1 Mbits/sec                  
+[  7]  23.00-24.00  sec  2.18 MBytes  18.3 Mbits/sec                  
+[  7]  24.00-25.00  sec  1.14 MBytes  9.53 Mbits/sec                  
+[  7]  25.00-26.00  sec  1.79 MBytes  15.1 Mbits/sec                  
+[  7]  26.00-27.00  sec  1.50 MBytes  12.6 Mbits/sec                  
+[  7]  27.00-28.00  sec  1.15 MBytes  9.65 Mbits/sec                  
+[  7]  28.00-29.00  sec  2.25 MBytes  18.8 Mbits/sec                  
+[  7]  29.00-30.00  sec  1.20 MBytes  10.1 Mbits/sec                  
+[  7]  30.00-31.00  sec  1.67 MBytes  14.0 Mbits/sec                  
+[  7]  31.00-32.00  sec  2.13 MBytes  17.9 Mbits/sec                  
+[  7]  32.00-33.00  sec  1.78 MBytes  14.9 Mbits/sec                  
+[  7]  33.00-34.00  sec  1.80 MBytes  15.1 Mbits/sec                  
+[  7]  34.00-35.00  sec  1.86 MBytes  15.6 Mbits/sec                  
+[  7]  35.00-36.00  sec  1.87 MBytes  15.7 Mbits/sec                  
+[  7]  36.00-37.00  sec  1.84 MBytes  15.5 Mbits/sec                  
+[  7]  37.00-38.00  sec  1.54 MBytes  12.9 Mbits/sec                  
+[  7]  38.00-39.00  sec  1.75 MBytes  14.7 Mbits/sec                  
+[  7]  39.00-40.00  sec  1.27 MBytes  10.7 Mbits/sec                  
+[  7]  40.00-41.00  sec  1.39 MBytes  11.6 Mbits/sec                  
+[  7]  41.00-42.00  sec  1.92 MBytes  16.2 Mbits/sec                  
+[  7]  42.00-43.00  sec  1.90 MBytes  16.0 Mbits/sec                  
+[  7]  43.00-44.00  sec  1.91 MBytes  16.0 Mbits/sec                  
+[  7]  44.00-45.00  sec  2.16 MBytes  18.1 Mbits/sec                  
+[  7]  45.00-46.01  sec  1.79 MBytes  14.9 Mbits/sec                  
+[  7]  46.01-47.00  sec  0.00 Bytes  0.00 bits/sec                  
+[  7]  47.00-48.01  sec  0.00 Bytes  0.00 bits/sec                  
+[  7]  48.01-49.01  sec  0.00 Bytes  0.00 bits/sec                  
+[  7]  49.01-50.00  sec  1.41 KBytes  11.7 Kbits/sec                  
+[  7]  50.00-51.00  sec  0.00 Bytes  0.00 bits/sec                  
+[  7]  51.00-52.00  sec  0.00 Bytes  0.00 bits/sec                  
+[  7]  52.00-53.00  sec  0.00 Bytes  0.00 bits/sec                  
+[  7]  53.00-54.01  sec  2.54 MBytes  21.1 Mbits/sec                  
+[  7]  54.01-55.00  sec  0.00 Bytes  0.00 bits/sec                  
+[  7]  55.00-56.00  sec  5.52 MBytes  46.4 Mbits/sec                  
+[  7]  56.00-57.00  sec  1.35 MBytes  11.4 Mbits/sec                  
+[  7]  57.00-58.00  sec  2.23 MBytes  18.7 Mbits/sec                  
+[  7]  58.00-59.00  sec  1.48 MBytes  12.4 Mbits/sec                  
+[  7]  59.00-60.00  sec  1.95 MBytes  16.4 Mbits/sec                  
+[  7]  60.00-61.00  sec  2.20 MBytes  18.4 Mbits/sec                  
+[  7]  61.00-62.00  sec  1.70 MBytes  14.2 Mbits/sec                  
+[  7]  62.00-63.01  sec  1.41 MBytes  11.7 Mbits/sec                  
+[  7]  63.01-64.00  sec  1.24 MBytes  10.5 Mbits/sec                  
+[  7]  64.00-65.00  sec  2.01 MBytes  16.9 Mbits/sec                  
+[  7]  65.00-66.00  sec  1.27 MBytes  10.7 Mbits/sec                  
+[  7]  66.00-67.00  sec  1.48 MBytes  12.4 Mbits/sec                  
+[  7]  67.00-68.00  sec  1.45 MBytes  12.1 Mbits/sec                  
+[  7]  68.00-69.00  sec  1.15 MBytes  9.68 Mbits/sec                  
+[  7]  69.00-70.00  sec  2.09 MBytes  17.5 Mbits/sec                  
+[  7]  75.00-76.00  sec  1.35 MBytes  11.3 Mbits/sec                  
+[  7]  76.00-77.00  sec  1.89 MBytes  15.8 Mbits/sec                  
+[  7]  77.00-78.00  sec  1.48 MBytes  12.4 Mbits/sec                  
+[  7]  78.00-79.00  sec  1.68 MBytes  14.1 Mbits/sec                  
+[  7]  79.00-80.00  sec   270 KBytes  2.21 Mbits/sec                  
+[  7]  80.00-81.00  sec  55.1 KBytes   452 Kbits/sec                  
+[  7]  81.00-82.00  sec   337 KBytes  2.76 Mbits/sec                  
+[  7]  82.00-83.00  sec  7.92 MBytes  66.5 Mbits/sec                  
+[  7]  83.00-84.00  sec  1.20 MBytes  10.1 Mbits/sec                  
+[  7]  84.00-85.01  sec  1.26 MBytes  10.4 Mbits/sec                  
+[  7]  85.01-86.00  sec   946 KBytes  7.85 Mbits/sec                  
+[  7]  86.00-87.00  sec  1011 KBytes  8.28 Mbits/sec                  
+[  7]  87.00-88.00  sec  1.44 MBytes  12.1 Mbits/sec                  
+[  7]  88.00-89.00  sec  2.08 MBytes  17.4 Mbits/sec                  
+[  7]  89.00-90.00  sec  1.16 MBytes  9.75 Mbits/sec                  
+[  7]  90.00-91.00  sec  1.39 MBytes  11.7 Mbits/sec                  
+[  7]  91.00-92.00  sec  1.80 MBytes  15.1 Mbits/sec                  
+[  7]  92.00-93.00  sec   987 KBytes  8.08 Mbits/sec                  
+[  7]  93.00-94.01  sec  1.08 MBytes  8.97 Mbits/sec                  
+[  7]  94.01-95.00  sec  1.30 MBytes  11.0 Mbits/sec                  
+[  7]  95.00-96.00  sec  1.45 MBytes  12.1 Mbits/sec                  
+[  7]  96.00-97.00  sec  1.84 MBytes  15.4 Mbits/sec                  
+[  7]  97.00-98.00  sec  1.72 MBytes  14.4 Mbits/sec                  
+[  7]  98.00-99.01  sec  1.56 MBytes  12.9 Mbits/sec                  
+[  7]  99.01-100.00 sec  1.81 MBytes  15.3 Mbits/sec                  
+[  7] 100.00-101.00 sec  1.92 MBytes  16.1 Mbits/sec                  
+[  7] 101.00-102.01 sec  1.23 MBytes  10.3 Mbits/sec                  
+[  7] 102.01-103.00 sec  1.48 MBytes  12.5 Mbits/sec                  
+[  7] 103.00-104.00 sec  1.56 MBytes  13.1 Mbits/sec                  
+[  7] 104.00-105.00 sec  1.67 MBytes  14.0 Mbits/sec                  
+[  7] 105.00-106.00 sec  1.21 MBytes  10.2 Mbits/sec                  
+[  7] 106.00-107.00 sec  0.00 Bytes  0.00 bits/sec                  
+[  7] 107.00-108.00 sec   129 KBytes  1.06 Mbits/sec                  
+[  7] 108.00-109.00 sec  2.45 MBytes  20.5 Mbits/sec                  
+[  7] 109.00-110.00 sec  6.63 MBytes  55.6 Mbits/sec                  
+[  7] 110.00-111.00 sec  2.24 MBytes  18.7 Mbits/sec                  
+[  7] 111.00-112.03 sec   520 KBytes  4.16 Mbits/sec                  
+[  7] 112.03-113.00 sec  1.83 MBytes  15.7 Mbits/sec                  
+[  7] 113.00-114.00 sec  1.38 MBytes  11.6 Mbits/sec                  
+[  7] 114.00-115.00 sec  1.89 MBytes  15.8 Mbits/sec                  
+[  7] 115.00-116.00 sec  1.71 MBytes  14.4 Mbits/sec                  
+[  7] 116.00-117.00 sec  1.42 MBytes  11.9 Mbits/sec                  
+[  7] 117.00-118.00 sec  1.29 MBytes  10.8 Mbits/sec                  
+[  7] 118.00-119.00 sec  1.65 MBytes  13.8 Mbits/sec                  
+[  7] 119.00-120.00 sec  1.56 MBytes  13.1 Mbits/sec                  
+[  7] 120.00-121.00 sec  1.32 MBytes  11.1 Mbits/sec                  
+[  7] 121.00-122.00 sec  1.60 MBytes  13.4 Mbits/sec                  
+[  7] 122.00-123.00 sec  1.66 MBytes  14.0 Mbits/sec                  
+[  7] 123.00-124.00 sec  1.43 MBytes  12.0 Mbits/sec                  
+[  7] 124.00-125.00 sec  1.78 MBytes  14.9 Mbits/sec                  
+[  7] 125.00-126.00 sec  1.56 MBytes  13.1 Mbits/sec                  
+[  7] 126.00-127.00 sec  2.06 MBytes  17.3 Mbits/sec                  
+[  7] 127.00-128.00 sec  1.80 MBytes  15.1 Mbits/sec                  
+[  7] 128.00-129.04 sec  1.50 MBytes  12.1 Mbits/sec                  
+[  7] 129.04-129.74 sec  1.42 MBytes  17.0 Mbits/sec                  
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth       Retr
+[  7]   0.00-129.74 sec   213 MBytes  13.8 Mbits/sec  2536             sender
+[  7]   0.00-129.74 sec   205 MBytes  13.2 Mbits/sec                  receiver
+
+\end{Verbatim}
+\end{latin}
+
+حال باید 
 
 \end{enumerate}
 \end{document}

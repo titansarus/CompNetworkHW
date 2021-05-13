@@ -3,6 +3,8 @@
 #include <v1model.p4>
 
 const bit<16> TYPE_IPV4 = 0x800;
+const bit<8> TYPE_TCP = 0x06;
+const bit<8> TYPE_UDP = 0x11;
 
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
@@ -11,6 +13,8 @@ const bit<16> TYPE_IPV4 = 0x800;
 typedef bit<9>  egressSpec_t;
 typedef bit<48> macAddr_t;
 typedef bit<32> ip4Addr_t;
+typedef bit<16> tcpAddr_t;
+typedef bit<16> udpAddr_t;
 
 header ethernet_t {
     macAddr_t dstAddr;
@@ -33,6 +37,36 @@ header ipv4_t {
     ip4Addr_t dstAddr;
 }
 
+//https://en.wikipedia.org/wiki/Transmission_Control_Protocol
+header tcp_t {
+   tcpAddr_t srcAddr;
+   tcpAddr_t dstAddr;
+   bit<32> seqNum;
+   bit<32> ackNum;
+   bit<4> dataOffset;
+   bit<3> reserved;
+   bit<1> NS;
+   bit<1> CWR;
+   bit<1> ECE;
+   bit<1> URG;
+   bit<1> ACK;
+   bit<1> PSH;
+   bit<1> RST;
+   bit<1> SYN;
+   bit<1> FIN;
+   bit<16> winSize;
+   bit<16> hdrChecksum;
+   bit<16> urgentPtr;
+}
+
+
+header udp_t {
+   udpAddr_t srcAddr;
+   udpAddr_t dstAddr;
+   bit<16> hdrLength;
+   bit<16> hdrChecksum;
+}
+
 
 struct metadata {
     /* empty */
@@ -41,6 +75,8 @@ struct metadata {
 struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
+    tcp_t tcp;
+    udp_t udp;
 }
 
 /*************************************************************************
@@ -67,8 +103,20 @@ parser MyParser(packet_in packet,
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
         transition select(hdr.ipv4.protocol) {
+            TYPE_TCP: parse_tcp;
+            TYPE_UDP: parse_udp;
             default: accept;
         }
+    }
+
+    state parse_tcp{
+        packet.extract(hdr.tcp);
+        transition accept;
+    }
+    
+    state parse_udp{
+        packet.extract(hdr.udp);
+        transition accept;
     }
 
 
@@ -165,6 +213,10 @@ control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
 
 control MyDeparser(packet_out packet, in headers hdr) {
     apply {
+        packet.emit(hdr.ethernet);
+        packet.emit(hdr.ipv4);
+        packet.emit(hdr.tcp);
+        packet.emit(hdr.udp);
     }
 }
 

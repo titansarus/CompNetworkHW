@@ -543,3 +543,9 @@ TSWLatexianTemp*
 *.glstex
 
 # End of https://www.toptal.com/developers/gitignore/api/tex
+HW2/Practical/Q3/.idea/aws.xml
+HW2/Practical/Q3/.idea/inspectionProfiles/profiles_settings.xml
+HW2/Practical/Q3/.idea/inspectionProfiles/Project_Default.xml
+HW2/Practical/Q3/.idea/misc.xml
+HW2/Practical/Q3/get-pip.py
+HW2/Practical/Q3/.idea/workspace.xml

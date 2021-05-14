@@ -163,35 +163,37 @@
 \newpage
 \section*{سوال سوم}
 
+تمامی موارد با اتصال به کنترلر \lr{Floodlight} اجرا شده‌اند.
+
 \begin{enumerate}
 	\item 
 	بعد از اجرای اسکریپت پایتون، دستورات زیر را اجرا می‌کنیم:
 	
 	\begin{latin}
-	\begin{lstlisting}[language=bash]
-		xterm h1 h3
-	\end{lstlisting}
-\end{latin}
-
-با \lr{\Verb+ifconfig+} متوجه‌ می‌شویم که IP هاست اول \lr{\Verb+10.0.0.1+} است.
-
-دستور زیر را در هاست اول اجرا می‌کنیم:
+		\begin{lstlisting}[language=bash]
+			xterm h1 h3
+		\end{lstlisting}
+	\end{latin}
 	
-\begin{latin}
-	\begin{lstlisting}[language=bash]
-		iperf3 -s
-	\end{lstlisting}
-\end{latin}
-
-و در هاست سوم دستور زیر را اجرا می‌کنیم:
-\begin{latin}
-	\begin{lstlisting}[language=bash]
-		iperf3 -c 10.0.0.1 -t 10
-	\end{lstlisting}
-\end{latin}
-
-\begin{latin}
-	\begin{Verbatim}
+	با \lr{\Verb+ifconfig+} متوجه‌ می‌شویم که IP هاست اول \lr{\Verb+10.0.0.1+} است.
+	
+	دستور زیر را در هاست اول اجرا می‌کنیم:
+	
+	\begin{latin}
+		\begin{lstlisting}[language=bash]
+			iperf3 -s
+		\end{lstlisting}
+	\end{latin}
+	
+	و در هاست سوم دستور زیر را اجرا می‌کنیم:
+	\begin{latin}
+		\begin{lstlisting}[language=bash]
+			iperf3 -c 10.0.0.1 -t 10
+		\end{lstlisting}
+	\end{latin}
+	
+	\begin{latin}
+		\begin{Verbatim}
 Connecting to host 10.0.0.1, port 5201
 [  6] local 10.0.0.3 port 47408 connected to 10.0.0.1 port 5201
 [ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
@@ -209,23 +211,23 @@ Connecting to host 10.0.0.1, port 5201
 [ ID] Interval           Transfer     Bandwidth       Retr
 [  6]   0.00-10.00  sec  22.4 MBytes  18.8 Mbits/sec    0             sender
 [  6]   0.00-10.00  sec  22.3 MBytes  18.7 Mbits/sec                  receiver
+
+
+		\end{Verbatim}
+	\end{latin}
 	
-		
-	\end{Verbatim}
-\end{latin}
-
-همان طور که مشاهده‌ می‌شود، گذردهی نهایی \lr{\Verb+18.8 Mbits/sec+} گزارش شده است. چیزی که انتظار داریم در اصل $20$ است اما این عدد هم تفاوت چندانی ندارد.  دلیل این تفاوت می‌تواند به این مربوط باشد که در این جا عملا یک سوییچ واقعی شبیه سازی شده است و یکسری پارامترهای درونی خود پروتکل \lr{OpenFlow1.3} تاثیر گذار بوده‌اند. مخصوصا در قسمت‌های بعدی شاهد تفاوت‌های جدی‌تری خواهیم بود که آن ها را بهتر می‌توان توجیه کرد. 
-
-ضمنا اعداد بالا تا حد خوبی برای هر دو طرف یکسان هستند و تفاوت معناداری بین‌‌ آن‌ها مشاهده نمی‌شود.
-
-\item
-دستورات مشابهی را مانند بالا برای هاست اول و دوم اجرا می‌کنیم.
-
-نتایج برای هر کدام از طرفین متفاوت است. برای فرستنده:
-
-
-\begin{latin}
-	\begin{Verbatim}
+	همان طور که مشاهده‌ می‌شود، گذردهی نهایی \lr{\Verb+18.8 Mbits/sec+} گزارش شده است. چیزی که انتظار داریم در اصل $20$ است اما این عدد هم تفاوت چندانی ندارد.  دلیل این تفاوت می‌تواند به این مربوط باشد که در این جا عملا یک سوییچ واقعی شبیه سازی شده است و یکسری پارامترهای درونی خود پروتکل \lr{OpenFlow1.3} و همچنین کنترلر \lr{Floodlight} تاثیرگذار بوده‌اند. مخصوصا در قسمت‌های بعدی شاهد تفاوت‌های جدی‌تری خواهیم بود که آن ها را بهتر می‌توان توجیه کرد. 
+	
+	ضمنا اعداد بالا تا حد خوبی برای هر دو طرف یکسان هستند و تفاوت معناداری بین‌‌ آن‌ها مشاهده نمی‌شود.
+	
+	\item
+	دستورات مشابهی را مانند بالا برای هاست اول و دوم اجرا می‌کنیم.
+	
+	نتایج برای هر کدام از طرفین متفاوت است. برای فرستنده:
+	
+	
+	\begin{latin}
+		\begin{Verbatim}
 [  6] local 10.0.0.2 port 43558 connected to 10.0.0.1 port 5201
 [ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
 [  6]   0.00-1.00   sec   362 KBytes  2.96 Mbits/sec    0    110 KBytes       
@@ -242,17 +244,17 @@ Connecting to host 10.0.0.1, port 5201
 [ ID] Interval           Transfer     Bandwidth       Retr
 [  6]   0.00-10.00  sec  29.0 MBytes  24.3 Mbits/sec    0             sender
 [  6]   0.00-10.00  sec  21.9 MBytes  18.4 Mbits/sec                 receiver
-		
-		
-		
-		
-	\end{Verbatim}
-\end{latin}
 
-اما در سمت گیرنده شاهد چنین اعداد هستیم:
 
-\begin{latin}
-	\begin{Verbatim}
+
+			
+		\end{Verbatim}
+	\end{latin}
+	
+	اما در سمت گیرنده شاهد چنین اعداد هستیم:
+	
+	\begin{latin}
+		\begin{Verbatim}
 [  7] local 10.0.0.1 port 5201 connected to 10.0.0.2 port 43558
 [ ID] Interval           Transfer     Bandwidth
 [  7]   0.00-1.00   sec  82.0 KBytes   672 Kbits/sec                  
@@ -287,23 +289,23 @@ Connecting to host 10.0.0.1, port 5201
 [  7]   0.00-26.82  sec  29.0 MBytes  9.06 Mbits/sec    0             sender
 [  7]   0.00-26.82  sec  21.9 MBytes  6.85 Mbits/sec                  receiver
 
-	\end{Verbatim}
-\end{latin}
-
-مشاهده می‌کنیم که در سمت دریافت کننده اعداد \lr{Throughput} بسیار کمتر هستند. دلیل این موضوع به دلیل \lr{Latency} موجود در شبکه است. این موضوع باعث شده که بسته ها دیرتر به مقصد برسند و به علاوه شاهد تغییرات جدی در \lr{Congestion Window} سمت فرستنده هم هستیم.
-
-اثر اصلی \lr{Latency} در این است که باعث می‌شود که Ack ها به موقع دریافت نشوند.
-
-در حالت قبلی RTT کمتر از $1ms$ بود و تنها موضوعی که گلوگاه بود، سرعت خود لینک بود ولی در این جا RTT حدود $200ms$ است و این موضوع گلوگاه ایجاد کرده است.
-
-\item
-
-
-با اجرای دستورات مشابه، نتیجه زیر را داریم:
-
-\begin{latin}
-	\begin{Verbatim}
-
+		\end{Verbatim}
+	\end{latin}
+	
+	مشاهده می‌کنیم که در سمت دریافت کننده اعداد \lr{Throughput} بسیار کمتر هستند. دلیل این موضوع به دلیل \lr{Latency} موجود در شبکه است. این موضوع باعث شده که بسته ها دیرتر به مقصد برسند و به علاوه شاهد تغییرات جدی در \lr{Congestion Window} سمت فرستنده هم هستیم.
+	
+	اثر اصلی \lr{Latency} در این است که باعث می‌شود که Ack ها به موقع دریافت نشوند.
+	
+	در حالت قبلی RTT کمتر از $1ms$ بود و تنها موضوعی که گلوگاه بود، سرعت خود لینک بود ولی در این جا RTT حدود $200ms$ است و این موضوع گلوگاه ایجاد کرده است.
+	
+	\item
+	
+	
+	با اجرای دستورات مشابه، نتیجه زیر را داریم:
+	
+	\begin{latin}
+		\begin{Verbatim}
+			
 [  6] local 10.0.0.5 port 47704 connected to 10.0.0.4 port 5201
 [ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
 [  6]   0.00-1.00   sec  2.16 MBytes  18.0 Mbits/sec   22   11.3 KBytes       
@@ -322,41 +324,41 @@ Connecting to host 10.0.0.1, port 5201
 [  6]   0.00-10.00  sec  12.8 MBytes  10.7 Mbits/sec                  receiver
 
 
-	\end{Verbatim}
-\end{latin}
-
-
-برای سمت دیگر هم به همین شکل است. مشاهده‌ می‌کنیم که گذردهی و Bandwidth حدودا نصف شده است. 
-در اصل Loss به دو شکل تاثیر گذار است. از یک سو نیاز به ارسال مجدد بسته‌های از دست رفته داریم. از سوی دیگر Cwnd نمی‌تواند به حالت بهینه ثابتی دست یابد. به علاوه تاثیر مستقیم آن‌هم این است که دیتایی که از دست رفته باشد را عملا نمی‌توان در Throughput به حساب آورد و همین موضوع هم موجب گذردهی می‌شود.
-
-
-\item
-
-سه رقم آخر $212$ است.
-
-هاست چهارم را سرور می‌کنیم.
-
-\begin{latin}
-	\begin{lstlisting}[language=bash]
-		iperf3 -s
-	\end{lstlisting}
-\end{latin}
-
-و از هاست اول به آن داده ارسال می‌کنیم.
-
-$$212 MB = 222298112 Byte$$
-
-
-\begin{latin}
-	\begin{lstlisting}[language=bash]
-		 iperf3 -c 10.0.0.4 -J>result.json -n 222298112 
-	\end{lstlisting}
-\end{latin}
-
-خروجی نهایی برای سمت گیرنده بدین شکل است:
-
-\begin{latin}
-\begin{Verbatim}
+		\end{Verbatim}
+	\end{latin}
+	
+	
+	برای سمت دیگر هم به همین شکل است. مشاهده‌ می‌کنیم که گذردهی و Bandwidth حدودا نصف شده است. 
+	در اصل Loss به دو شکل تاثیر گذار است. از یک سو نیاز به ارسال مجدد بسته‌های از دست رفته داریم. از سوی دیگر Cwnd نمی‌تواند به حالت بهینه ثابتی دست یابد. به علاوه تاثیر مستقیم آن‌هم این است که دیتایی که از دست رفته باشد را عملا نمی‌توان در Throughput به حساب آورد و همین موضوع هم موجب کاهش گذردهی می‌شود.
+	
+	
+	\item
+	
+	سه رقم آخر $212$ است.
+	
+	هاست چهارم را سرور می‌کنیم.
+	
+	\begin{latin}
+		\begin{lstlisting}[language=bash]
+			iperf3 -s
+		\end{lstlisting}
+	\end{latin}
+	
+	و از هاست اول به آن داده ارسال می‌کنیم.
+	
+	$$212 MB = 222298112 Byte$$
+	
+	
+	\begin{latin}
+		\begin{lstlisting}[language=bash]
+			iperf3 -c 10.0.0.4 -J>result.json -n 222298112 
+		\end{lstlisting}
+	\end{latin}
+	
+	خروجی نهایی برای سمت گیرنده بدین شکل است:
+	
+	\begin{latin}
+		\begin{Verbatim}
 [  7] local 10.0.0.4 port 5201 connected to 10.0.0.1 port 39646
 [ ID] Interval           Transfer     Bitrate
 [  7]   0.00-1.00   sec  2.10 MBytes  17.6 Mbits/sec                  
@@ -485,24 +487,26 @@ $$212 MB = 222298112 Byte$$
 [  7]   0.00-120.33 sec   203 MBytes  14.2 Mbits/sec                  receiver
 
 
-\end{Verbatim}
-\end{latin}
-
-حال باید به کمک داده‌های فایل Json که در سمت فرستنده ایجاد شده نمودارها را ایجاد کنیم.
-
-\begin{center}
-	\includegraphics[page=1, width = 0.6 \textwidth]{images/plots.pdf}
-\end{center}
-
-\begin{center}
-	\includegraphics[page=2, width = 0.6 \textwidth]{images/plots.pdf}
-\end{center}
-
-\begin{center}
-	\includegraphics[page=3, width = 0.6 \textwidth]{images/plots.pdf}
-\end{center}
-
+		\end{Verbatim}
+	\end{latin}
+	
+	حال باید به کمک داده‌های فایل Json که در سمت فرستنده ایجاد شده نمودارها را ایجاد کنیم.
+	
+	\begin{center}
+		\includegraphics[page=1, width = 0.6 \textwidth]{images/plots.pdf}
+	\end{center}
+	
+	\begin{center}
+		\includegraphics[page=2, width = 0.6 \textwidth]{images/plots.pdf}
+	\end{center}
+	
+	\begin{center}
+		\includegraphics[page=3, width = 0.6 \textwidth]{images/plots.pdf}
+	\end{center}
+	
 \end{enumerate}
+
+در مورد تحلیل این نمودارها، با بالارفتن پنجره Congestion شاهد افت‌های ناگهانی آن براساس الگوریتم‌های کنترل Congestion هستیم. در لحظاتی که با Congestion خیلی بالا رو به رو هستیم، مشاهده می‌کنیم که RTT هم بالا رفته است که به معنی کند شدن شبکه است و بلافاصله بعد از کاهش پنجره Congestion شاهد افت شدید RTT هم هستیم که نشان‌دهنده بالا رفتن سرعت شبکه است. از طرف دیگر گذردهی هم در همان لحظاتی که RTT به شدت زیاد شده، با کاهش چشمگیری رو به رو شده است و همچنین در لحظاتی که RTT کاهش چشمگیری داشته و پنجره Congestion کاهش شدید پیدا کرده است و دوباره تنظیم شده، شاهد افزایش شدید  گذردهی در لحظه بعدی هستیم زیرا مواردی که در اثر ازدحام دچار مشکل شده بودند، با خلوت شدن شبکه به راحتی منتقل شده اند. در باقی موارد شاهد رفتار نوسانی نسبتا معقولی در شبکه هستیم و اتفاق شاخصی رخ نمی‌دهد.
 \end{document}
 
 

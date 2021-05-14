@@ -162,26 +162,25 @@ control MyIngress(inout headers hdr,
         default_action = drop();
     }
     
-     table ipv4_udp_lpm {
+     table ipv4_udp_acl {
         key = {
-            hdr.ipv4.dstAddr: lpm;
-            hdr.udp.dstPort: exact;
+            hdr.ipv4.dstAddr: ternary;
+            hdr.udp.dstPort: ternary;
         }
         actions = {
             drop;
             NoAction;
         }
         size = 1024;
-        default_action = drop();
+        default_action = NoAction();
     }
 
     apply {
         if (hdr.ipv4.isValid()) {
             ipv4_lpm.apply();
             if (hdr.udp.isValid()){
-                ipv4_udp_lpm.apply();
+                ipv4_udp_acl.apply();
             }   
-            
         }
     }
 }

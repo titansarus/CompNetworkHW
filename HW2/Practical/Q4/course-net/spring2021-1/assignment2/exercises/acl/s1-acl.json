@@ -42,16 +42,21 @@
         "port": 3
       }
     },
-	{
-      "table": "MyIngress.ipv4_udp_lpm",
+    {
+      "table": "MyIngress.ipv4_lpm",
       "match": {
-        "hdr.ipv4.dstAddr": ["10.0.1.4", 32],
-        "hdr.udp.dstPort": [80]
+        "hdr.ipv4.dstAddr": ["10.0.1.4", 32]
+      },
+      "action_name": "MyIngress.drop",
+      "action_params": {}
+    },
+    {
+      "table": "MyIngress.ipv4_udp_acl",
+      "match": {
+        "hdr.udp.dstPort": [80,65535]
       },
       "action_name": "MyIngress.drop",
       "action_params": {}
     }
-
-   
   ]
 }

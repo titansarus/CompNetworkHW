@@ -164,8 +164,7 @@ control MyIngress(inout headers hdr,
     
      table ipv4_udp_acl {
         key = {
-            hdr.ipv4.dstAddr: ternary;
-            hdr.udp.dstPort: ternary;
+            hdr.udp.dstPort: exact;
         }
         actions = {
             drop;
@@ -178,7 +177,7 @@ control MyIngress(inout headers hdr,
     apply {
         if (hdr.ipv4.isValid()) {
             ipv4_lpm.apply();
-            if (hdr.udp.isValid()){
+            if (hdr.udp.isValid()) {
                 ipv4_udp_acl.apply();
             }   
         }

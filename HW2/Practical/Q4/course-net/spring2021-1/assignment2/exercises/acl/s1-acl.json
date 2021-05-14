@@ -53,7 +53,7 @@
     {
       "table": "MyIngress.ipv4_udp_acl",
       "match": {
-        "hdr.udp.dstPort": [80,65535]
+        "hdr.udp.dstPort": 80
       },
       "action_name": "MyIngress.drop",
       "action_params": {}

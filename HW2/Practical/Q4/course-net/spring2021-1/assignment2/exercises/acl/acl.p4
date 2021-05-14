@@ -39,8 +39,8 @@ header ipv4_t {
 
 //https://en.wikipedia.org/wiki/Transmission_Control_Protocol
 header tcp_t {
-   tcpAddr_t srcAddr;
-   tcpAddr_t dstAddr;
+   tcpAddr_t srcPort;
+   tcpAddr_t dstPort;
    bit<32> seqNum;
    bit<32> ackNum;
    bit<4> dataOffset;
@@ -59,10 +59,10 @@ header tcp_t {
    bit<16> urgentPtr;
 }
 
-
+//https://en.wikipedia.org/wiki/User_Datagram_Protocol
 header udp_t {
-   udpAddr_t srcAddr;
-   udpAddr_t dstAddr;
+   udpAddr_t srcPort;
+   udpAddr_t dstPort;
    bit<16> hdrLength;
    bit<16> hdrChecksum;
 }
@@ -75,8 +75,8 @@ struct metadata {
 struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
-    tcp_t tcp;
-    udp_t udp;
+    tcp_t        tcp;
+    udp_t        udp;
 }
 
 /*************************************************************************
@@ -161,17 +161,31 @@ control MyIngress(inout headers hdr,
         size = 1024;
         default_action = drop();
     }
-
+    
+     table ipv4_udp_lpm {
+        key = {
+            hdr.ipv4.dstAddr: lpm;
+            hdr.udp.dstPort: exact;
+        }
+        actions = {
+            drop;
+            NoAction;
+        }
+        size = 1024;
+        default_action = drop();
+    }
 
     apply {
         if (hdr.ipv4.isValid()) {
             ipv4_lpm.apply();
-            /* TODO: add your table to the control flow */
-
+            if (hdr.udp.isValid()){
+                ipv4_udp_lpm.apply();
+            }   
+            
         }
-
     }
 }
+
 
 /*************************************************************************
 ****************  E G R E S S   P R O C E S S I N G   *******************

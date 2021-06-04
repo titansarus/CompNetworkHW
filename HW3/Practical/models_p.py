@@ -100,7 +100,6 @@ class AS:
         for my_link in self.connected_AS:
             AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE, path, hijack_range_ip)
         # advertise this range ip fraudly
-        pass
 
     def advertise_self(self):
         for ip in self.owned_ips:
@@ -128,41 +127,86 @@ class AS:
         # advertise all paths you know (include yourself ips)
         pass
 
-    def check_hijack(self , ip_range, claiming_as):
+    def check_hijack(self, ip_range, claiming_as):
         for path in self.path_ips:
             path_ip = path["range_ip"]
-            if subnet_of(ip_range , path_ip):
-                if (int(path["path"][-2])!=int(claiming_as)):
+            if subnet_of(ip_range, path_ip):
+                if int(path["path"][-2]) != int(claiming_as):
                     return True
         return False
-    
+
     def receive_message(self, message, sender_as_number):
+        changed = False
         if message["is_advertise"] == MESSAGE_TYPE.ADVERTISE:
             my_path = {"path": message["path"], "range_ip": message["range_ip"]}
+            if self.check_hijack(my_path["range_ip"], my_path["path"][-2]):
+                print(f'AS {self.as_number}: {my_path["range_ip"]} hijacked.')
+                return
 
-
-            # TODO CHECK FOR HIJACK
-            if self.path_ips.count(my_path)==0:
+            if self.path_ips.count(my_path) == 0:
                 self.path_ips.append(my_path)
-                self.advertise_all()
+                changed = True
 
         if message["is_advertise"] == MESSAGE_TYPE.WITHDRAW:
             remove_path = {"path": message["path"], "range_ip": message["range_ip"]}
             if self.path_ips.count(remove_path):
                 self.path_ips.remove(remove_path)
+                changed = True
                 self.withdrawn_path(remove_path)
 
+        if changed and self.auto_advertise:
+            self.advertise_all()
         # use for receiving a message from a link.
         #
         return
 
     def get_route(self, range_ip):
+        for ip in self.owned_ips:
+            if subnet_of(range_ip, ip):
+                print(f'AS {self.as_number}: [{self.as_number}] {range_ip}')
+                return
+
+        valid_paths = []
+        for path in self.path_ips:
+            if subnet_of(range_ip, path["range_ip"]):
+                valid_paths.append(path)
+
+        customer_paths = []
+        peer_paths = []
+        provider_paths = []
+        for path in valid_paths:
+            role = self.get_role(path["path"][0])
+            if role == ROLES.COSTUMER:
+                customer_paths.append(path)
+            elif role == ROLES.PEER:
+                peer_paths.append(path)
+            elif role == ROLES.PROVIDER:
+                provider_paths.append(path)
+            else:
+                raise NotImplementedError
+        sorted_list = []
+        if len(customer_paths):
+            sorted_list = sorted(customer_paths, key=lambda x: len(x["path"]))
+        elif len(peer_paths):
+            sorted_list = sorted(peer_paths, key=lambda x: len(x["path"]))
+        elif len(provider_paths):
+            sorted_list = sorted(provider_paths, key=lambda x: len(x["path"]))
+        else:
+            print(f'AS {self.as_number}: None {range_ip}')
+            return
+        out_str = f'AS {self.as_number}: ['
+        for i in range(len(sorted_list[0]) - 1, -1, -1):
+            out_str += f'{sorted_list[0]["path"][i]}, '
+        out_str += f'{self.as_number}] {range_ip}'
+        print(out_str)
+        return
+
         # print reachable path to this range ip (use bgp algorithm)
         # print ' None + range_ip 'if it doesn't exist
         pass
 
     def delete_link(self, as_number):
-        #TODO TEST
+        # TODO TEST
         delete_link = None
         for link in self.connected_AS:
             if link.peer_as_number == as_number:

@@ -42,7 +42,7 @@ class AS:
         self.owned_ips = owned_ips if owned_ips else list()
         self.path_ips = []
         self.auto_advertise = False
-        pass
+
 
 
     def add_link(self, linked_AS: LinkedAS):
@@ -75,7 +75,7 @@ class AS:
         # withdrawn [prefix] #
         # link [delete/create] [AS_number]
         # when auto advertise is on you must advertise paths immediately after receiving it
-        pass
+
 
     def withdrawn_ip(self, range_ip):
         self.owned_ips.remove(range_ip)
@@ -83,24 +83,13 @@ class AS:
         for my_link in self.connected_AS:
             AS.send_message(my_link, MESSAGE_TYPE.WITHDRAW, path, range_ip)
         # delete range ip and send withdrawn message to ASs
-        pass
+
 
     def withdrawn_path(self, path):
-        send_path = [self.as_number] + path[PATH_CONST]
-        path_owner_role = self.get_role(int(path[PATH_CONST][0]))
-        for my_link in self.connected_AS:
-            if (int(path[PATH_CONST][0]) == my_link.peer_as_number):
-                continue
-            if self.get_role(int(my_link.peer_as_number)) == ROLES.PEER and path_owner_role == ROLES.PEER:
-                continue
-            if self.get_role(int(my_link.peer_as_number)) == ROLES.PROVIDER and path_owner_role == ROLES.PROVIDER:
-                continue
-            AS.send_message(my_link, MESSAGE_TYPE.WITHDRAW, send_path, path[RANGE_IP_CONST])
-
+        self.advertise_or_withdraw(path , False)
         # HINT function
         # propagate withdrawn message
 
-    pass
 
     def hijack(self, hijack_range_ip):
         path = [self.as_number, hijack_range_ip]
@@ -116,7 +105,7 @@ class AS:
 
         # your code
         # advertise your ips
-        pass
+
 
     def advertise_all(self):
         #advertise my ips
@@ -124,18 +113,21 @@ class AS:
 
         #advertise other paths
         for adv_path in self.path_ips:
-            send_path = [self.as_number] + adv_path[PATH_CONST]
-            path_owner_role = self.get_role(int(adv_path[PATH_CONST][0]))
-            for my_link in self.connected_AS:
-                if (int(adv_path[PATH_CONST][0]) == my_link.peer_as_number):
-                    continue
-                if self.get_role(int(my_link.peer_as_number)) == ROLES.PEER and path_owner_role == ROLES.PEER:
-                    continue
-                if self.get_role(int(my_link.peer_as_number)) == ROLES.PROVIDER and path_owner_role == ROLES.PROVIDER:
-                    continue
-                AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE, send_path, adv_path[RANGE_IP_CONST])
-        # advertise all paths you know (include yourself ips)
-        pass
+            self.advertise_or_withdraw(adv_path,True)
+
+
+
+    def advertise_or_withdraw(self, path , is_advertise):
+        send_path = [self.as_number] + path[PATH_CONST]
+        path_owner_role = self.get_role(int(path[PATH_CONST][0]))
+        for my_link in self.connected_AS:
+            if int(path[PATH_CONST][0]) == my_link.peer_as_number:
+                continue
+            if self.get_role(int(my_link.peer_as_number)) == ROLES.PEER and path_owner_role == ROLES.PEER:
+                continue
+            if self.get_role(int(my_link.peer_as_number)) == ROLES.PROVIDER and path_owner_role == ROLES.PROVIDER:
+                continue
+            AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW, send_path, path[RANGE_IP_CONST])
 
     def check_hijack(self, ip_range, claiming_as):
         for path in self.path_ips:
@@ -145,7 +137,7 @@ class AS:
                     return True
         return False
 
-    def receive_message(self, message, sender_as_number):
+    def receive_message(self, message,  sender_as_number):
         changed = False
         if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.ADVERTISE:
             received_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}

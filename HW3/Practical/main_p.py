@@ -83,6 +83,7 @@ commands_2 = [
     "AS 2:advertise self",
     "AS 3:advertise self",
     "AS 5:advertise self",
+    "AS 4:advertise all",
     "AS 0:get route 33.0.0.0/8",
     "AS 0:hijack 5.0.0.0/8",
     "AS 3:withdrawn 33.0.0.0/8",

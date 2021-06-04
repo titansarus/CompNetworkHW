@@ -13,9 +13,11 @@ class MESSAGE_TYPE(Enum):
     ADVERTISE = 1
     WITHDRAW = -1
 
+
 PATH_CONST = "path"
 RANGE_IP_CONST = "range_ip"
 MESSAGE_TYPE_CONST = "message_type"
+
 
 class LinkedAS:
     def __init__(self, peer_as_number, our_as_number, link, role):
@@ -39,7 +41,9 @@ class AS:
         self.connected_AS = connected_AS if connected_AS else list()
         self.owned_ips = owned_ips if owned_ips else list()
         self.path_ips = []
+        self.auto_advertise = False
         pass
+
 
     def add_link(self, linked_AS: LinkedAS):
         self.connected_AS.append(linked_AS)
@@ -115,7 +119,10 @@ class AS:
         pass
 
     def advertise_all(self):
+        #advertise my ips
         self.advertise_self()
+
+        #advertise other paths
         for adv_path in self.path_ips:
             send_path = [self.as_number] + adv_path[PATH_CONST]
             path_owner_role = self.get_role(int(adv_path[PATH_CONST][0]))
@@ -141,21 +148,21 @@ class AS:
     def receive_message(self, message, sender_as_number):
         changed = False
         if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.ADVERTISE:
-            my_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
-            if self.check_hijack(my_path[RANGE_IP_CONST], my_path[PATH_CONST][-2]):
-                print(f'AS {self.as_number}: {my_path[RANGE_IP_CONST]} hijacked.')
+            received_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
+            if self.check_hijack(received_path[RANGE_IP_CONST], received_path[PATH_CONST][-2]):
+                self.print(f'{received_path[RANGE_IP_CONST]} hijacked.')
                 return
 
-            if self.path_ips.count(my_path) == 0:
-                self.path_ips.append(my_path)
+            if self.path_ips.count(received_path) == 0:
+                self.path_ips.append(received_path)
                 changed = True
 
         if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.WITHDRAW:
-            remove_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
-            if self.path_ips.count(remove_path):
-                self.path_ips.remove(remove_path)
+            received_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
+            if self.path_ips.count(received_path):
+                self.path_ips.remove(received_path)
                 changed = True
-                self.withdrawn_path(remove_path)
+                self.withdrawn_path(received_path)
 
         if changed and self.auto_advertise:
             self.advertise_all()
@@ -166,7 +173,7 @@ class AS:
     def get_route(self, range_ip):
         for ip in self.owned_ips:
             if subnet_of(range_ip, ip):
-                print(f'AS {self.as_number}: [{self.as_number}] {range_ip}')
+                self.print(f'[{self.as_number}] {range_ip}')
                 return
 
         valid_paths = []
@@ -187,7 +194,6 @@ class AS:
                 provider_paths.append(path)
             else:
                 raise NotImplementedError
-        sorted_list = []
         if len(customer_paths):
             sorted_list = sorted(customer_paths, key=lambda x: len(x[PATH_CONST]))
         elif len(peer_paths):
@@ -195,13 +201,13 @@ class AS:
         elif len(provider_paths):
             sorted_list = sorted(provider_paths, key=lambda x: len(x[PATH_CONST]))
         else:
-            print(f'AS {self.as_number}: None {range_ip}')
+            self.print(f'None {range_ip}')
             return
-        out_str = f'AS {self.as_number}: ['
+        out_str = f'['
         for i in range(len(sorted_list[0]) - 1, -1, -1):
             out_str += f'{sorted_list[0][PATH_CONST][i]}, '
         out_str += f'{self.as_number}] {range_ip}'
-        print(out_str)
+        self.print(out_str)
         return
 
         # print reachable path to this range ip (use bgp algorithm)

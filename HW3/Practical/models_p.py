@@ -13,6 +13,9 @@ class MESSAGE_TYPE(Enum):
     ADVERTISE = 1
     WITHDRAW = -1
 
+PATH_CONST = "path"
+RANGE_IP_CONST = "range_ip"
+MESSAGE_TYPE_CONST = "message_type"
 
 class LinkedAS:
     def __init__(self, peer_as_number, our_as_number, link, role):
@@ -79,16 +82,16 @@ class AS:
         pass
 
     def withdrawn_path(self, path):
-        send_path = [self.as_number] + path["path"]
-        path_owner_role = self.get_role(int(path["path"][0]))
+        send_path = [self.as_number] + path[PATH_CONST]
+        path_owner_role = self.get_role(int(path[PATH_CONST][0]))
         for my_link in self.connected_AS:
-            if (int(path["path"][0]) == my_link.peer_as_number):
+            if (int(path[PATH_CONST][0]) == my_link.peer_as_number):
                 continue
             if self.get_role(int(my_link.peer_as_number)) == ROLES.PEER and path_owner_role == ROLES.PEER:
                 continue
             if self.get_role(int(my_link.peer_as_number)) == ROLES.PROVIDER and path_owner_role == ROLES.PROVIDER:
                 continue
-            AS.send_message(my_link, MESSAGE_TYPE.WITHDRAW, send_path, path["range_ip"])
+            AS.send_message(my_link, MESSAGE_TYPE.WITHDRAW, send_path, path[RANGE_IP_CONST])
 
         # HINT function
         # propagate withdrawn message
@@ -114,41 +117,41 @@ class AS:
     def advertise_all(self):
         self.advertise_self()
         for adv_path in self.path_ips:
-            send_path = [self.as_number] + adv_path["path"]
-            path_owner_role = self.get_role(int(adv_path["path"][0]))
+            send_path = [self.as_number] + adv_path[PATH_CONST]
+            path_owner_role = self.get_role(int(adv_path[PATH_CONST][0]))
             for my_link in self.connected_AS:
-                if (int(adv_path["path"][0]) == my_link.peer_as_number):
+                if (int(adv_path[PATH_CONST][0]) == my_link.peer_as_number):
                     continue
                 if self.get_role(int(my_link.peer_as_number)) == ROLES.PEER and path_owner_role == ROLES.PEER:
                     continue
                 if self.get_role(int(my_link.peer_as_number)) == ROLES.PROVIDER and path_owner_role == ROLES.PROVIDER:
                     continue
-                AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE, send_path, adv_path["range_ip"])
+                AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE, send_path, adv_path[RANGE_IP_CONST])
         # advertise all paths you know (include yourself ips)
         pass
 
     def check_hijack(self, ip_range, claiming_as):
         for path in self.path_ips:
-            path_ip = path["range_ip"]
+            path_ip = path[RANGE_IP_CONST]
             if subnet_of(ip_range, path_ip):
-                if int(path["path"][-2]) != int(claiming_as):
+                if int(path[PATH_CONST][-2]) != int(claiming_as):
                     return True
         return False
 
     def receive_message(self, message, sender_as_number):
         changed = False
-        if message["is_advertise"] == MESSAGE_TYPE.ADVERTISE:
-            my_path = {"path": message["path"], "range_ip": message["range_ip"]}
-            if self.check_hijack(my_path["range_ip"], my_path["path"][-2]):
-                print(f'AS {self.as_number}: {my_path["range_ip"]} hijacked.')
+        if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.ADVERTISE:
+            my_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
+            if self.check_hijack(my_path[RANGE_IP_CONST], my_path[PATH_CONST][-2]):
+                print(f'AS {self.as_number}: {my_path[RANGE_IP_CONST]} hijacked.')
                 return
 
             if self.path_ips.count(my_path) == 0:
                 self.path_ips.append(my_path)
                 changed = True
 
-        if message["is_advertise"] == MESSAGE_TYPE.WITHDRAW:
-            remove_path = {"path": message["path"], "range_ip": message["range_ip"]}
+        if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.WITHDRAW:
+            remove_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
             if self.path_ips.count(remove_path):
                 self.path_ips.remove(remove_path)
                 changed = True
@@ -168,14 +171,14 @@ class AS:
 
         valid_paths = []
         for path in self.path_ips:
-            if subnet_of(range_ip, path["range_ip"]):
+            if subnet_of(range_ip, path[RANGE_IP_CONST]):
                 valid_paths.append(path)
 
         customer_paths = []
         peer_paths = []
         provider_paths = []
         for path in valid_paths:
-            role = self.get_role(path["path"][0])
+            role = self.get_role(path[PATH_CONST][0])
             if role == ROLES.COSTUMER:
                 customer_paths.append(path)
             elif role == ROLES.PEER:
@@ -186,17 +189,17 @@ class AS:
                 raise NotImplementedError
         sorted_list = []
         if len(customer_paths):
-            sorted_list = sorted(customer_paths, key=lambda x: len(x["path"]))
+            sorted_list = sorted(customer_paths, key=lambda x: len(x[PATH_CONST]))
         elif len(peer_paths):
-            sorted_list = sorted(peer_paths, key=lambda x: len(x["path"]))
+            sorted_list = sorted(peer_paths, key=lambda x: len(x[PATH_CONST]))
         elif len(provider_paths):
-            sorted_list = sorted(provider_paths, key=lambda x: len(x["path"]))
+            sorted_list = sorted(provider_paths, key=lambda x: len(x[PATH_CONST]))
         else:
             print(f'AS {self.as_number}: None {range_ip}')
             return
         out_str = f'AS {self.as_number}: ['
         for i in range(len(sorted_list[0]) - 1, -1, -1):
-            out_str += f'{sorted_list[0]["path"][i]}, '
+            out_str += f'{sorted_list[0][PATH_CONST][i]}, '
         out_str += f'{self.as_number}] {range_ip}'
         print(out_str)
         return
@@ -227,9 +230,9 @@ class AS:
     @staticmethod
     def send_message(link, is_advertise, path, range_ip):
         link.send_message({
-            "is_advertise": is_advertise,
-            "path": path,
-            "range_ip": range_ip
+            MESSAGE_TYPE_CONST: is_advertise,
+            PATH_CONST: path,
+            RANGE_IP_CONST: range_ip
         })
 
     def get_role(self, as_number):

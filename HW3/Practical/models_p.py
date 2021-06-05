@@ -107,6 +107,7 @@ class AS:
         for adv_path in self.path_ips:
             self.advertise_or_withdraw(adv_path, True)
 
+    # Utility function to send advertise or withdraw message to neighbours, by following the rules of advertisement.
     def advertise_or_withdraw(self, path, is_advertise):
         send_path = [self.as_number] + path[PATH_CONST]
         path_owner_role = self.get_role(int(path[PATH_CONST][0]))
@@ -120,6 +121,7 @@ class AS:
             AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW, send_path,
                             path[RANGE_IP_CONST])
 
+    # Check whether previously known paths to the ip_range really belong to the AS claiming that it owns  range_ip.
     def check_hijack(self, ip_range, claiming_as):
         for path in self.path_ips:
             path_ip = path[RANGE_IP_CONST]
@@ -130,8 +132,9 @@ class AS:
 
     # use for receiving a message from a link.
     def receive_message(self, message, sender_as_number):
-        changed = False
+        changed = False  # changes is a flag to check whether anything changed
         if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.ADVERTISE:
+            # If message is advertise, check if it is hijacked or not, if not, add it to paths.
             received_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
             if self.check_hijack(received_path[RANGE_IP_CONST], received_path[PATH_CONST][-2]):
                 self.print(f'{received_path[RANGE_IP_CONST]} hijacked.')
@@ -142,12 +145,14 @@ class AS:
                 changed = True
 
         if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.WITHDRAW:
+            # Withdraw path
             received_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
             if self.path_ips.count(received_path):
                 self.path_ips.remove(received_path)
                 changed = True
                 self.withdrawn_path(received_path)
 
+        # If anything changed and auto_advertise is true, advertise all you know.
         if changed and self.auto_advertise:
             self.advertise_all()
         return
@@ -155,16 +160,19 @@ class AS:
     # print reachable path to this range ip (use bgp algorithm)
     # print ' None + range_ip 'if it doesn't exist
     def get_route(self, range_ip):
+        # Search in AS IPs
         for ip in self.owned_ips:
             if subnet_of(range_ip, ip):
                 self.print(f'[{self.as_number}] {range_ip}')
                 return
 
+        # Find valid paths that go through other ASes
         valid_paths = []
         for path in self.path_ips:
             if subnet_of(range_ip, path[RANGE_IP_CONST]):
                 valid_paths.append(path)
 
+        # Classify path into three categories (customer, peer, and provider)
         customer_paths = []
         peer_paths = []
         provider_paths = []
@@ -178,6 +186,8 @@ class AS:
                 provider_paths.append(path)
             else:
                 raise NotImplementedError
+
+        # Get a sorted list first by prioritizing customer>peer>provider and then by length of path
         if len(customer_paths):
             sorted_list = sorted(customer_paths, key=lambda x: len(x[PATH_CONST]))
         elif len(peer_paths):
@@ -187,6 +197,8 @@ class AS:
         else:
             self.print(f'None {range_ip}')
             return
+
+        # Print path
         out_str = f'['
         for i in range(len(sorted_list[0]) - 1, -1, -1):
             out_str += f'{sorted_list[0][PATH_CONST][i]}, '
@@ -202,7 +214,7 @@ class AS:
         for path in path_to_withdraw:
             self.withdrawn_path(path)
 
-    # handle deletion of a link
+    # Handle deletion of a link
     def delete_link(self, as_number):
         delete_link = None
         for link in self.connected_AS:
@@ -218,6 +230,8 @@ class AS:
             first_as.withdraw_path_to_as(second_as.as_number)
             second_as.withdraw_path_to_as(first_as.as_number)
 
+    # Handle creation of a link
+    # this link has already been added to your  self.connected_AS
     def create_link(self, as_number):
         # Add the link to the other AS, If it is not added yet.
         as_link = self.connected_AS[-1]
@@ -229,13 +243,9 @@ class AS:
         if as_link not in other_as.connected_AS:
             other_as.connected_AS.append(as_link)
 
-        # advertise all  paths. it will cause the path to be advertised to the newly added link
+        # Advertise all  paths. it will cause the path to be advertised to the newly added link
         self.advertise_all()
         other_as.advertise_all()
-
-        # handle creation of a link
-        # this link has already been added to your  self.connected_AS
-        pass
 
     @staticmethod
     def send_message(link, is_advertise, path, range_ip):
@@ -247,15 +257,12 @@ class AS:
 
     def get_role(self, as_number):
         return self.get_link(as_number).role
-        pass
 
     def get_link(self, as_number):
         return next(filter(lambda link_as: link_as.peer_as_number == as_number, self.connected_AS))
-        pass
 
     def print(self, *message):
         print("AS " + str(self.as_number) + ":", *message)
-        pass
 
 
 # This class handles communication between 2 ASes.

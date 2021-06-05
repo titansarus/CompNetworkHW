@@ -43,8 +43,6 @@ class AS:
         self.path_ips = []
         self.auto_advertise = False
 
-
-
     def add_link(self, linked_AS: LinkedAS):
         self.connected_AS.append(linked_AS)
 
@@ -76,48 +74,40 @@ class AS:
         # link [delete/create] [AS_number]
         # when auto advertise is on you must advertise paths immediately after receiving it
 
-
+    # delete range ip and send withdrawn message to ASs
     def withdrawn_ip(self, range_ip):
         self.owned_ips.remove(range_ip)
         path = [self.as_number, range_ip]
         for my_link in self.connected_AS:
             AS.send_message(my_link, MESSAGE_TYPE.WITHDRAW, path, range_ip)
-        # delete range ip and send withdrawn message to ASs
 
-
+    # propagate withdrawn message
     def withdrawn_path(self, path):
-        self.advertise_or_withdraw(path , False)
-        # HINT function
-        # propagate withdrawn message
+        self.advertise_or_withdraw(path, False)
+        # Propagation is handled in receive message
 
-
+    # advertise this range ip fraudulently
     def hijack(self, hijack_range_ip):
         path = [self.as_number, hijack_range_ip]
         for my_link in self.connected_AS:
             AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE, path, hijack_range_ip)
-        # advertise this range ip fraudly
 
+    # advertise your ips
     def advertise_self(self):
         for ip in self.owned_ips:
             path = [self.as_number, ip]
             for my_link in self.connected_AS:
                 AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE, path, ip)
 
-        # your code
-        # advertise your ips
-
-
     def advertise_all(self):
-        #advertise my ips
+        # advertise my ips
         self.advertise_self()
 
-        #advertise other paths
+        # advertise other paths
         for adv_path in self.path_ips:
-            self.advertise_or_withdraw(adv_path,True)
+            self.advertise_or_withdraw(adv_path, True)
 
-
-
-    def advertise_or_withdraw(self, path , is_advertise):
+    def advertise_or_withdraw(self, path, is_advertise):
         send_path = [self.as_number] + path[PATH_CONST]
         path_owner_role = self.get_role(int(path[PATH_CONST][0]))
         for my_link in self.connected_AS:
@@ -127,7 +117,8 @@ class AS:
                 continue
             if self.get_role(int(my_link.peer_as_number)) == ROLES.PROVIDER and path_owner_role == ROLES.PROVIDER:
                 continue
-            AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW, send_path, path[RANGE_IP_CONST])
+            AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW, send_path,
+                            path[RANGE_IP_CONST])
 
     def check_hijack(self, ip_range, claiming_as):
         for path in self.path_ips:
@@ -137,7 +128,8 @@ class AS:
                     return True
         return False
 
-    def receive_message(self, message,  sender_as_number):
+    # use for receiving a message from a link.
+    def receive_message(self, message, sender_as_number):
         changed = False
         if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.ADVERTISE:
             received_path = {PATH_CONST: message[PATH_CONST], RANGE_IP_CONST: message[RANGE_IP_CONST]}
@@ -158,10 +150,10 @@ class AS:
 
         if changed and self.auto_advertise:
             self.advertise_all()
-        # use for receiving a message from a link.
-        #
         return
 
+    # print reachable path to this range ip (use bgp algorithm)
+    # print ' None + range_ip 'if it doesn't exist
     def get_route(self, range_ip):
         for ip in self.owned_ips:
             if subnet_of(range_ip, ip):
@@ -202,12 +194,16 @@ class AS:
         self.print(out_str)
         return
 
-        # print reachable path to this range ip (use bgp algorithm)
-        # print ' None + range_ip 'if it doesn't exist
-        pass
+    def withdraw_path_to_as(self, as_number):
+        path_to_withdraw = []
+        for path in self.path_ips:
+            if int(path[PATH_CONST][0]) == as_number:
+                path_to_withdraw.append(path)
+        for path in path_to_withdraw:
+            self.withdrawn_path(path)
 
+    # handle deletion of a link
     def delete_link(self, as_number):
-        # TODO TEST
         delete_link = None
         for link in self.connected_AS:
             if link.peer_as_number == as_number:
@@ -215,12 +211,28 @@ class AS:
                 break
         if delete_link:
             self.connected_AS.remove(delete_link)
-            delete_link.link.first_as.delete_link(self.as_number)
-            delete_link.link.second_as.delete_link(self.as_number)
-        # handle deletion of a link
-        pass
+            first_as: AS = delete_link.link.first_as
+            second_as: AS = delete_link.link.second_as
+            first_as.delete_link(self.as_number)
+            second_as.delete_link(self.as_number)
+            first_as.withdraw_path_to_as(second_as.as_number)
+            second_as.withdraw_path_to_as(first_as.as_number)
 
     def create_link(self, as_number):
+        # Add the link to the other AS, If it is not added yet.
+        as_link = self.connected_AS[-1]
+        if as_number == as_link.link.first_as.as_number:
+            other_as: AS = as_link.link.first_as
+        else:
+            other_as: AS = as_link.link.second_as
+
+        if as_link not in other_as.connected_AS:
+            other_as.connected_AS.append(as_link)
+
+        # advertise all  paths. it will cause the path to be advertised to the newly added link
+        self.advertise_all()
+        other_as.advertise_all()
+
         # handle creation of a link
         # this link has already been added to your  self.connected_AS
         pass

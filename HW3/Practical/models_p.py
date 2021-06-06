@@ -114,9 +114,11 @@ class AS:
         for my_link in self.connected_AS:
             if int(path[PATH_CONST][0]) == my_link.peer_as_number:
                 continue
-            if self.get_role(int(my_link.peer_as_number)) == ROLES.PEER and path_owner_role == ROLES.PEER:
+            if self.get_role(int(my_link.peer_as_number)) == ROLES.PEER and (
+                    path_owner_role == ROLES.PEER or path_owner_role == ROLES.PROVIDER):
                 continue
-            if self.get_role(int(my_link.peer_as_number)) == ROLES.PROVIDER and path_owner_role == ROLES.PROVIDER:
+            if self.get_role(int(my_link.peer_as_number)) == ROLES.PROVIDER and (
+                    path_owner_role == ROLES.PROVIDER or path_owner_role == ROLES.PEER):
                 continue
             AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW, send_path,
                             path[RANGE_IP_CONST])

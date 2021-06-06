@@ -189,11 +189,11 @@ class AS:
 
         # Get a sorted list first by prioritizing customer>peer>provider and then by length of path
         if len(customer_paths):
-            sorted_list = sorted(customer_paths, key=lambda x: len(x[PATH_CONST]))
+            sorted_list = sorted(customer_paths, key=lambda x: (len(x[PATH_CONST]), x[PATH_CONST]))
         elif len(peer_paths):
-            sorted_list = sorted(peer_paths, key=lambda x: len(x[PATH_CONST]))
+            sorted_list = sorted(peer_paths, key=lambda x: (len(x[PATH_CONST]), x[PATH_CONST]))
         elif len(provider_paths):
-            sorted_list = sorted(provider_paths, key=lambda x: len(x[PATH_CONST]))
+            sorted_list = sorted(provider_paths, key=lambda x: (len(x[PATH_CONST]), x[PATH_CONST]))
         else:
             self.print(f'None {range_ip}')
             return

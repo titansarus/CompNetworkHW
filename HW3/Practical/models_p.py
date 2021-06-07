@@ -156,8 +156,9 @@ class AS:
                 return
 
             if self.path_ips.count(received_path) == 0:
-                self.path_ips.append(received_path)
-                changed = True
+                if not self.as_number in received_path[PATH_CONST]:
+                    self.path_ips.append(received_path)
+                    changed = True
 
         if message[MESSAGE_TYPE_CONST] == MESSAGE_TYPE.WITHDRAW:
             # Withdraw path

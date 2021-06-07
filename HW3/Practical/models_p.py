@@ -111,7 +111,7 @@ class AS:
 
     # Utility function to send advertise or withdraw message to neighbours, by following the rules of advertisement.
     def advertise_or_withdraw(self, path, is_advertise):
-        # If my ip is in path, don't propagate (to prevent loops)
+        # If my AS number is in path, don't propagate (to prevent loops)
         if self.as_number in path[PATH_CONST]:
             return
 
@@ -122,14 +122,17 @@ class AS:
             if int(path[PATH_CONST][0]) == my_link.peer_as_number:
                 continue
 
-            # Send all messages to customer
-            if self.get_role((int(my_link.peer_as_number))) == ROLES.COSTUMER:
+            neighbour_role = self.get_role((int(my_link.peer_as_number)))
+
+            # Send all paths to my customers
+            if neighbour_role == ROLES.COSTUMER:
                 AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW, send_path,
                                 path[RANGE_IP_CONST])
                 continue
-            # Send customer paths to Peers or Providers but don't send other paths
-            elif self.get_role((int(my_link.peer_as_number))) == ROLES.PEER or self.get_role(
-                    (int(my_link.peer_as_number))) == ROLES.PROVIDER:
+            # Send customer's paths to Peers or Providers but don't send other paths
+            elif neighbour_role == ROLES.PEER or neighbour_role == ROLES.PROVIDER:
+                # Actually the elif above could be replaced by else, it is stated in this way to be completely explicit.
+
                 if path_owner_role == ROLES.COSTUMER:
                     AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW,
                                     send_path,
@@ -156,6 +159,7 @@ class AS:
                 return
 
             if self.path_ips.count(received_path) == 0:
+                # if my AS number is in the path, don't add it into my paths to prevent loops.
                 if not self.as_number in received_path[PATH_CONST]:
                     self.path_ips.append(received_path)
                     changed = True

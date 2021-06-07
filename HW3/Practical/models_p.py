@@ -109,35 +109,38 @@ class AS:
         for adv_path in self.path_ips:
             self.advertise_or_withdraw(adv_path, True)
 
-    # Utility function to send advertise or withdraw message to neighbours, by following the rules of advertisement.
-    def advertise_or_withdraw(self, path, is_advertise):
-        # If my AS number is in path, don't propagate (to prevent loops)
-        if self.as_number in path[PATH_CONST]:
+    def advertise_or_withdraw_to_specific_link(self, path, is_advertise, link):
+        # Don't Propagate If I am in the path or I have gotten the path recently from the same link (to prevent loops)
+        if self.as_number in path[PATH_CONST] or int(path[PATH_CONST][0]) == link.peer_as_number:
             return
 
         send_path = [self.as_number] + path[PATH_CONST]
         path_owner_role = self.get_role(int(path[PATH_CONST][0]))
 
-        for my_link in self.connected_AS:
-            if int(path[PATH_CONST][0]) == my_link.peer_as_number:
-                continue
+        neighbour_role = self.get_role((int(link.peer_as_number)))
 
-            neighbour_role = self.get_role((int(my_link.peer_as_number)))
-
-            # Send all paths to my customers
-            if neighbour_role == ROLES.COSTUMER:
-                AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW, send_path,
-                                path[RANGE_IP_CONST])
-                continue
+        # Send all paths to my customers
+        if neighbour_role == ROLES.COSTUMER:
+            AS.send_message(link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW, send_path,
+                            path[RANGE_IP_CONST])
+            return
             # Send customer's paths to Peers or Providers but don't send other paths
-            elif neighbour_role == ROLES.PEER or neighbour_role == ROLES.PROVIDER:
-                # Actually the elif above could be replaced by else, it is stated in this way to be completely explicit.
+        elif neighbour_role == ROLES.PEER or neighbour_role == ROLES.PROVIDER:
+            # Actually the elif above could be replaced by else, it is stated in this way to be completely explicit.
 
-                if path_owner_role == ROLES.COSTUMER:
-                    AS.send_message(my_link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW,
-                                    send_path,
-                                    path[RANGE_IP_CONST])
-                continue
+            if path_owner_role == ROLES.COSTUMER:
+                AS.send_message(link, MESSAGE_TYPE.ADVERTISE if is_advertise else MESSAGE_TYPE.WITHDRAW,
+                                send_path,
+                                path[RANGE_IP_CONST])
+            return
+
+    # Utility function to send advertise or withdraw message to neighbours, by following the rules of advertisement.
+    def advertise_or_withdraw(self, path, is_advertise):
+        # If my AS number is in path, don't propagate (to prevent loops)
+        if self.as_number in path[PATH_CONST]:
+            return
+        for my_link in self.connected_AS:
+            self.advertise_or_withdraw_to_specific_link(path, is_advertise, my_link)
 
     # Check whether previously known paths to the ip_range really belong to the AS claiming that it owns  range_ip.
     def check_hijack(self, ip_range, claiming_as):
@@ -254,17 +257,14 @@ class AS:
     # this link has already been added to your  self.connected_AS
     def create_link(self, as_number):
         # Add the link to the other AS, If it is not added yet.
-        as_link = self.connected_AS[-1]
-        if as_number == as_link.link.first_as.as_number:
-            other_as: AS = as_link.link.first_as
-        else:
-            other_as: AS = as_link.link.second_as
+        as_link = self.get_link(int(as_number))
 
-        if as_link not in other_as.connected_AS:
-            other_as.connected_AS.append(as_link)
-
-        # Advertise all  paths. it will cause the path to be advertised to the newly added link
-        self.advertise_all()
+        # Advertise all my paths to the recently linked AS.
+        for ip in self.owned_ips:
+            path = [self.as_number, ip]
+            AS.send_message(as_link, MESSAGE_TYPE.ADVERTISE, path, ip)
+        for path in self.path_ips:
+            self.advertise_or_withdraw_to_specific_link(path, True, as_link)
 
     @staticmethod
     def send_message(link, is_advertise, path, range_ip):

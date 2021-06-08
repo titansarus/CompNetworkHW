@@ -1,4 +1,4 @@
-from models_p import AS, LinkedAS, Link, ROLES
+from models_p  import AS, LinkedAS, Link, ROLES
 
 links_2 = [
     {
@@ -131,6 +131,105 @@ commands_2_3 = [
     "AS 2:get route 5.0.0.0/8",
 ]
 
+commands_2_4 = [
+    "AS 0:auto advertise on",
+    "AS 1:auto advertise on",
+    "AS 2:auto advertise on",
+    "AS 3:auto advertise on",
+    "AS 4:auto advertise on",
+    "AS 5:auto advertise on",
+    "AS 0:advertise self",
+    "AS 1:advertise self",
+    "AS 2:advertise self",
+    "AS 3:advertise self",
+    "AS 4:advertise self",
+    "AS 5:advertise self",
+    "AS 3:get route 1.0.0.0/8",
+    "link delete 1 3",
+    "AS 3:get route 1.0.0.0/8",
+
+    "AS 4:get route 1.0.0.0/8",
+    "link delete 2 4",
+    "AS 4:get route 1.0.0.0/8",
+
+]
+
+commands_2_5 = [
+    "AS 0:auto advertise on",
+    "AS 1:auto advertise on",
+    "AS 2:auto advertise on",
+    "AS 3:auto advertise on",
+    "AS 4:auto advertise on",
+    "AS 5:auto advertise on",
+    "AS 0:advertise self",
+    "AS 1:advertise self",
+    "AS 2:advertise self",
+    "AS 3:advertise self",
+    "AS 4:advertise self",
+    "AS 5:advertise self",
+    "AS 3:get route 1.23.0.0/16",
+]
+commands_2_6 = [
+    "AS 0:auto advertise on",
+    "AS 1:auto advertise on",
+    "AS 2:auto advertise on",
+    "AS 3:auto advertise on",
+    "AS 4:auto advertise on",
+    "AS 5:auto advertise on",
+    "AS 0:advertise self",
+    "AS 1:advertise self",
+    "AS 2:advertise self",
+    "AS 3:advertise self",
+    "AS 4:advertise self",
+    "AS 5:advertise self",
+
+    "AS 3:get route 2.0.0.0/8",
+    "link delete 2 3",
+    "AS 3:get route 2.0.0.0/8",
+]
+
+commands_2_7 = [
+    "AS 0:auto advertise on",
+    "AS 1:auto advertise on",
+    "AS 2:auto advertise on",
+    "AS 3:auto advertise on",
+    "AS 4:auto advertise on",
+    "AS 5:auto advertise on",
+    "AS 0:advertise self",
+    "AS 1:advertise self",
+    "AS 2:advertise self",
+    "AS 3:advertise self",
+    "AS 4:advertise self",
+    "AS 5:advertise self",
+
+    "link delete 1 3",
+    "AS 2:hijack 3.0.0.0/8",
+    "AS 1:get route 3.0.0.0/8",
+    "AS 0:get route 3.0.0.0/8",
+    "AS 4:get route 3.0.0.0/8",
+]
+
+commands_2_8 = [
+    "AS 0:auto advertise on",
+    "AS 1:auto advertise on",
+    "AS 2:auto advertise on",
+    "AS 3:auto advertise on",
+    "AS 4:auto advertise on",
+    "AS 5:auto advertise on",
+    "AS 1:advertise self",
+    "AS 2:advertise self",
+    "AS 3:advertise self",
+    "AS 4:advertise self",
+    "AS 5:advertise self",
+
+    "AS 5:get route 6.0.0.0/8",
+    "AS 0:advertise self",
+    "AS 5:get route 6.0.0.0/8",
+
+]
+
+
+
 def run(AS_MAP, links, commands):
     AS_dictionary = dict()
     for as_number in AS_MAP.keys():
@@ -170,10 +269,20 @@ def create_link(AS_dictionary, first_as_number, first_role, second_as_number, se
     second_as.add_link(LinkedAS(first_as_number, second_as_number, l, second_role))
 
 
-print("test 1")
+print("test 1 : hijack - get route - withdrawn ip ")
 run(AS_MAP_2, links_2, commands_2_1)
-print("\n\ntest 2")
+print("\ntest 2 : link delete/create")
 run(AS_MAP_2, links_2, commands_2_2)
-print("\n\ntest 3")
+print("\ntest 3 : advertise all")
 run(AS_MAP_2, links_2, commands_2_3)
+print("\ntest 4 : another link delete + bgp rule")
+run(AS_MAP_2, links_2, commands_2_4)
+print("\ntest 5 : subnet ")
+run(AS_MAP_2, links_2, commands_2_5)
+print("\ntest 6 : another delete link + bgp rule ")
+run(AS_MAP_2, links_2, commands_2_6)
+print("\ntest 7 : test successful hijack")
+run(AS_MAP_2, links_2, commands_2_7)
+print("\ntest 8 : advertise self")
+run(AS_MAP_2, links_2, commands_2_8)
 
